@@ -798,6 +798,20 @@ function setSyncStatus(status, label){
   lbl.textContent=label||cfg.lbl;
 }
 
+// ── Hardcoded Firebase config ─────────────────────────────────
+// This is baked into the file so every device auto-connects without setup.
+// To change projects: update these values and re-deploy to GitHub Pages.
+const BUILT_IN_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCzrvWViGlEjaRgIgwqoLbT0tv_Tuv_ZcU",
+  authDomain: "sub-coverage-manager.firebaseapp.com",
+  databaseURL: "https://sub-coverage-manager-default-rtdb.firebaseio.com",
+  projectId: "sub-coverage-manager",
+  storageBucket: "sub-coverage-manager.firebasestorage.app",
+  messagingSenderId: "807845423399",
+  appId: "1:807845423399:web:bfd66390ea23cb0aea6102",
+  measurementId: "G-SD2L4S083Y"
+};
+
 // ── Firebase init ─────────────────────────────────────────────
 function getStoredFbConfig(){return lsGet('scm_fb_config');}
 
@@ -1756,12 +1770,13 @@ async function init(){
   const today=new Date();
   document.getElementById('todayHdr').textContent=today.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
 
-  // Auto-connect Firebase if config was saved previously
-  const storedConfig=getStoredFbConfig();
-  if(storedConfig?.databaseURL){
+  // Auto-connect using built-in config (works for every visitor automatically).
+  // Falls back to any manually-stored config if somehow the built-in is cleared.
+  const configToUse = BUILT_IN_FIREBASE_CONFIG || getStoredFbConfig();
+  if(configToUse?.databaseURL){
     setSyncStatus('connecting');
-    initFirebase(storedConfig);
-    renderFbSettingsCard(true, storedConfig.databaseURL||storedConfig.projectId);
+    initFirebase(configToUse);
+    renderFbSettingsCard(true, configToUse.projectId||configToUse.databaseURL);
   } else {
     setSyncStatus('no-firebase');
   }
