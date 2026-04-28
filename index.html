@@ -78,6 +78,11 @@ select{cursor:pointer}
 .period-sel.conflict{border-color:#fbbf24;background:#fffbeb;color:#92400e}
 .suggest-hint{font-size:.6rem;color:#3b82f6;text-align:center;font-weight:600;cursor:pointer}
 .suggest-hint:hover{text-decoration:underline}
+.period-sel.ncn{border-color:#d1d5db;background:#f8fafc;color:#9ca3af;font-style:italic}
+.ncn-btn{font-size:.58rem;text-align:center;cursor:pointer;color:#94a3b8;padding:2px 0;border-radius:4px;border:1px dashed #d1d5db;background:white;transition:all .15s}
+.ncn-btn:hover{color:#475569;border-color:#94a3b8;background:#f1f5f9}
+.ncn-active-btn{font-size:.6rem;text-align:center;cursor:pointer;color:#9ca3af;padding:2px 0;border-radius:4px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:600}
+.ncn-active-btn:hover{color:#dc2626;border-color:#fca5a5;background:#fef2f2}
 /* Alerts */
 .conflict-alert{background:#fffbeb;border:1.5px solid #fde047;border-radius:9px;padding:12px 16px;font-size:.85rem;color:#92400e;margin-bottom:14px;display:flex;gap:8px}
 /* Badges */
@@ -235,11 +240,11 @@ tr:hover td{background:#f8fafc}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
     <div class="card">
       <div class="card-header"><div class="card-title">👥 Sub Workload</div><span id="subWlNote" style="font-size:.75rem;color:#94a3b8"></span></div>
-      <div id="subWlList"></div>
+      <div id="subWlList" style="max-height:260px;overflow-y:auto;padding-right:4px"></div>
     </div>
     <div class="card">
       <div class="card-header"><div class="card-title">📋 Teacher Absences</div></div>
-      <div class="tbl-scroll"><table><thead><tr><th>Teacher</th><th>Days Out</th><th>Chart</th></tr></thead><tbody id="tchrAbsBody"></tbody></table></div>
+      <div class="tbl-scroll" style="max-height:260px;overflow-y:auto"><table><thead><tr><th>Teacher</th><th>Days Out</th><th>Chart</th></tr></thead><tbody id="tchrAbsBody"></tbody></table></div>
     </div>
   </div>
   <div class="card">
@@ -258,7 +263,7 @@ tr:hover td{background:#f8fafc}
   </div>
   <div class="card">
     <div class="card-header"><div class="card-title">📜 Full Absence Log</div></div>
-    <div class="tbl-scroll"><table><thead><tr><th>Date</th><th>Day</th><th>Teachers Out</th><th>Sub Assignments</th><th>Notes</th></tr></thead><tbody id="absLogBody"></tbody></table></div>
+    <div class="tbl-scroll" style="max-height:320px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Day</th><th>Teachers Out</th><th>Sub Assignments</th><th>Notes</th></tr></thead><tbody id="absLogBody"></tbody></table></div>
   </div>
 </section>
 
@@ -327,8 +332,14 @@ tr:hover td{background:#f8fafc}
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
     <div class="card">
-      <div class="card-header"><div class="card-title">👩‍🏫 Most Absent Teachers (all time)</div></div>
-      <div id="insightsTchrList" style="max-height:340px;overflow-y:auto"></div>
+      <div class="card-header">
+        <div class="card-title">📊 Absences by Grade &amp; Subject</div>
+        <div style="display:flex;gap:6px">
+          <button id="btnGradeView" class="btn btn-primary btn-sm" onclick="setInsightsAbsView('grade')">By Grade</button>
+          <button id="btnSubjectView" class="btn btn-outline btn-sm" onclick="setInsightsAbsView('subject')">By Subject</button>
+        </div>
+      </div>
+      <div id="gradeSubjectList" style="max-height:300px;overflow-y:auto"></div>
     </div>
     <div class="card">
       <div class="card-header"><div class="card-title">🗓 High-Need Weeks (projected)</div></div>
@@ -412,7 +423,7 @@ tr:hover td{background:#f8fafc}
       <button class="modal-close" onclick="closeModal('tchrModal')">×</button>
     </div>
     <div class="form-group"><label>Teacher Name</label><input type="text" id="tchrNameIn" placeholder="Full name"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
       <div class="form-group" style="margin-bottom:0">
         <label>🔗 Teams Link</label>
         <input type="text" id="tchrTeamsIn" placeholder="https://teams.microsoft.com/…">
@@ -420,6 +431,29 @@ tr:hover td{background:#f8fafc}
       <div class="form-group" style="margin-bottom:0">
         <label>🥽 VR Session ID</label>
         <input type="text" id="tchrVrIn" placeholder="VR session code / ID">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>🎓 Grade Level</label>
+        <select id="tchrGrade">
+          <option value="">— Select —</option>
+          <option>Pre-K</option><option>Kindergarten</option>
+          <option>1st Grade</option><option>2nd Grade</option><option>3rd Grade</option>
+          <option>4th Grade</option><option>5th Grade</option><option>6th Grade</option>
+          <option>7th Grade</option><option>8th Grade</option><option>9th Grade</option>
+          <option>10th Grade</option><option>11th Grade</option><option>12th Grade</option>
+          <option>Multiple Grades</option><option>School-Wide</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>📚 Subject</label>
+        <select id="tchrSubject">
+          <option value="">— Select —</option>
+          <option>ELA / Reading</option><option>Math</option><option>Science</option>
+          <option>Social Studies</option><option>History</option><option>PE / Health</option>
+          <option>Art</option><option>Music</option><option>Technology</option>
+          <option>Special Education</option><option>ESL / ELL</option>
+          <option>Counseling</option><option>Administration</option><option>Other</option>
+        </select>
       </div>
     </div>
     <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">Weekly Schedule (check periods this teacher teaches)</label>
@@ -928,6 +962,7 @@ function normalizeState(s){
   s.teachers=toArr(s.teachers).map(t=>({
     id:t.id||'t'+Math.random(),name:t.name||'',
     teamsLink:t.teamsLink||'',vrId:t.vrId||'',
+    grade:t.grade||'',subject:t.subject||'',
     schedule:{
       Mon:toArr(t.schedule?.Mon),Tue:toArr(t.schedule?.Tue),
       Wed:toArr(t.schedule?.Wed),Thu:toArr(t.schedule?.Thu)
@@ -1248,7 +1283,7 @@ function getSubPeriods(subName,startDate,endDate){
   for(const[d,day] of Object.entries(state.roster)){
     if(startDate&&d<startDate)continue;
     if(endDate&&d>endDate)continue;
-    for(const abs of day.absences)for(const v of Object.values(abs.coverage))if(v===subName)n++;
+    for(const abs of day.absences)for(const v of Object.values(abs.coverage))if(v===subName&&v!=='__NCN__')n++;
   }
   return n;
 }
@@ -1314,7 +1349,7 @@ function getConflicts(ds){
   const res=[];
   for(const p of PERIOD_DEFS){
     const cnt={};
-    day.absences.forEach(a=>{const v=a.coverage[p.id];if(v)cnt[v]=(cnt[v]||0)+1;});
+    day.absences.forEach(a=>{const v=a.coverage[p.id];if(v&&v!=='__NCN__')cnt[v]=(cnt[v]||0)+1;});
     for(const[sub,n] of Object.entries(cnt))if(n>1)res.push(`${sub} is double-booked for ${p.label}`);
   }
   return res;
@@ -1495,9 +1530,10 @@ function renderAbsCard(ds,abs,idx){
     const val=abs.coverage[p.id]||'';
     const teaches=!hasSchedule||schedForDay.includes(p.id);
     const suggest=teaches&&!val?getSuggestion(ds,p.id,idx):null;
-    const conflict=val&&conflicts.some(c=>c.includes(val)&&c.includes(p.label));
+    const conflict=val&&val!=='__NCN__'&&conflicts.some(c=>c.includes(val)&&c.includes(p.label));
     let selCls='period-sel';
     if(!teaches)selCls+=' na';
+    else if(val==='__NCN__')selCls+=' ncn';
     else if(val&&conflict)selCls+=' conflict';
     else if(val)selCls+=' covered';
     else selCls+=' uncov';
@@ -1506,12 +1542,19 @@ function renderAbsCard(ds,abs,idx){
       <div class="period-lbl">${p.id}</div>
       <div class="period-time">${p.time}</div>`;
     if(teaches){
-      html+=`<select class="${selCls}" onchange="updateCoverage('${ds}',${idx},'${p.id}',this.value)">${allSubOptions(val,suggest)}</select>`;
-      if(suggest&&!val){
-        const tierCss=TIER_CSS[suggest.tier]||'tier5';
-        html+=`<div class="suggest-hint" onclick="applySuggest('${ds}',${idx},'${p.id}','${esc(suggest.name)}')" title="Click to assign — ${suggest.periods} periods covered this year">
-          ⭐ ${esc(suggest.name)} <span class="tier-badge ${tierCss}" style="font-size:.55rem">T${suggest.tier}</span>
-        </div>`;
+      const isNCN = val==='__NCN__';
+      if(isNCN){
+        html+=`<div class="period-sel ncn" style="text-align:center;padding:7px;font-size:.75rem;cursor:default">⊘ No Sub Needed</div>`;
+        html+=`<div class="ncn-active-btn" onclick="updateCoverage('${ds}',${idx},'${p.id}','')" title="Click to mark as needing coverage again">↩ Undo</div>`;
+      } else {
+        html+=`<select class="${selCls}" onchange="updateCoverage('${ds}',${idx},'${p.id}',this.value)">${allSubOptions(val,suggest)}</select>`;
+        if(suggest&&!val){
+          const tierCss=TIER_CSS[suggest.tier]||'tier5';
+          html+=`<div class="suggest-hint" onclick="applySuggest('${ds}',${idx},'${p.id}','${esc(suggest.name)}')" title="Click to assign — ${suggest.periods} periods covered this year">
+            ⭐ ${esc(suggest.name)} <span class="tier-badge ${tierCss}" style="font-size:.55rem">T${suggest.tier}</span>
+          </div>`;
+        }
+        html+=`<div class="ncn-btn" onclick="updateCoverage('${ds}',${idx},'${p.id}','__NCN__')" title="No sub needed this period">⊘ No Sub Needed</div>`;
       }
     } else {
       html+=`<div class="period-sel na" style="text-align:center;padding:8px;font-size:.7rem">N/A</div>`;
@@ -1586,12 +1629,12 @@ function copyRoster(ds){
     if(teacher?.vrId)      txt+=`   🥽 VR Session ID: ${teacher.vrId}\n`;
     // Only show periods that have coverage OR were actively used
     const coveredPeriods=PERIOD_DEFS.filter(p=>abs.coverage[p.id]);
-    const uncoveredPeriods=PERIOD_DEFS.filter(p=>!abs.coverage[p.id]);
+    const uncoveredPeriods=PERIOD_DEFS.filter(p=>!abs.coverage[p.id]&&abs.coverage[p.id]!=='__NCN__');
     if(coveredPeriods.length){
       txt+=`   Coverage:\n`;
       for(const p of PERIOD_DEFS){
         const v=abs.coverage[p.id];
-        if(v)txt+=`     ${p.id} (${p.time}): ${v}\n`;
+        if(v&&v!=='__NCN__')txt+=`     ${p.id} (${p.time}): ${v}\n`;
       }
     }
     if(uncoveredPeriods.length&&coveredPeriods.length<PERIOD_DEFS.length){
@@ -1763,13 +1806,15 @@ function renderTeachers(){
     return;
   }
   document.getElementById('tchrList').innerHTML=`<table>
-    <thead><tr><th>Teacher Name</th><th>Schedule</th><th>Teams / VR</th><th>Days Absent</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Teacher Name</th><th>Grade</th><th>Subject</th><th>Schedule</th><th>Teams / VR</th><th>Days Absent</th><th>Actions</th></tr></thead>
     <tbody>${filtered.map(t=>{
       const hasSchedule=Object.values(t.schedule||{}).some(p=>p?.length>0);
       const days=getTeacherDays(t.name);
       const hasLinks=t.teamsLink||t.vrId;
       return `<tr>
         <td><strong>${esc(t.name)}</strong></td>
+        <td style="font-size:.8rem">${t.grade?esc(t.grade):'<span style="color:#94a3b8">—</span>'}</td>
+        <td style="font-size:.8rem">${t.subject?esc(t.subject):'<span style="color:#94a3b8">—</span>'}</td>
         <td>${hasSchedule?`<span class="badge badge-green">✓ Set</span>`:`<span class="badge badge-gray">Not set</span>`}</td>
         <td>${t.teamsLink?`<a href="${esc(t.teamsLink)}" target="_blank" style="color:#1e40af;font-size:.8rem">🔗 Teams</a> `:''}${t.vrId?`<span style="font-size:.8rem">🥽 ${esc(t.vrId)}</span>`:''}${!hasLinks?`<span style="color:#94a3b8;font-size:.8rem">—</span>`:''}</td>
         <td>${days>0?`<span class="badge badge-red">${days} day${days!==1?'s':''}</span>`:`<span style="color:#94a3b8">0</span>`}</td>
@@ -1786,6 +1831,8 @@ function openTeacherModal(id){
   document.getElementById('tchrNameIn').value=t?.name||'';
   document.getElementById('tchrTeamsIn').value=t?.teamsLink||'';
   document.getElementById('tchrVrIn').value=t?.vrId||'';
+  document.getElementById('tchrGrade').value=t?.grade||'';
+  document.getElementById('tchrSubject').value=t?.subject||'';
   document.getElementById('tchrModalId').value=id||'';
   // Build schedule grid
   let html=`<div class="sched-head"></div>`;
@@ -1814,11 +1861,13 @@ function saveTeacher(){
   }
   const teamsLink=document.getElementById('tchrTeamsIn').value.trim();
   const vrId=document.getElementById('tchrVrIn').value.trim();
+  const grade=document.getElementById('tchrGrade').value;
+  const subject=document.getElementById('tchrSubject').value;
   if(id){
     const t=state.teachers.find(x=>x.id===id);
-    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrId=vrId;}
+    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrId=vrId;t.grade=grade;t.subject=subject;}
   } else {
-    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrId});
+    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrId,grade,subject});
     state.teachers.sort((a,b)=>a.name.localeCompare(b.name));
   }
   saveState();closeModal('tchrModal');renderTeachers();
@@ -2127,6 +2176,38 @@ function archiveYear(){
 //  INSIGHTS TAB
 // ═══════════════════════════════════════════════════════════════
 let monthChartInst=null,dowChartInst=null,periodChartInst=null,yoyChartInst=null;
+let insightsAbsView='grade';
+function setInsightsAbsView(v){insightsAbsView=v;document.getElementById('btnGradeView').className='btn btn-'+(v==='grade'?'primary':'outline')+' btn-sm';document.getElementById('btnSubjectView').className='btn btn-'+(v==='subject'?'primary':'outline')+' btn-sm';renderGradeSubjectList();}
+
+function renderGradeSubjectList(allEntries,yearFilter){
+  // Called from renderInsights; allEntries is passed in
+  if(!allEntries){
+    // Re-gather if called standalone
+    const sel=document.getElementById('insightsYear');
+    const rosters=getAllRosterData(sel?.value||'all');
+    allEntries=rosters.flatMap(({label,roster})=>Object.entries(roster||{}).map(([date,day])=>({date,day,year:label})));
+  }
+  const daysWithAbs=allEntries.filter(e=>e.day.absences?.length>0);
+  const counts={};
+  daysWithAbs.forEach(e=>{
+    (e.day.absences||[]).forEach(a=>{
+      if(!a.teacher)return;
+      const t=state.teachers.find(x=>x.name===a.teacher);
+      const key=insightsAbsView==='grade'?(t?.grade||'Unknown Grade'):(t?.subject||'Unknown Subject');
+      counts[key]=(counts[key]||0)+1;
+    });
+  });
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const maxN=sorted[0]?.[1]||1;
+  const el=document.getElementById('gradeSubjectList');
+  if(!el)return;
+  el.innerHTML=sorted.map(([key,n])=>`
+    <div class="wl-row">
+      <div class="wl-name" style="width:160px;font-size:.82rem" title="${esc(key)}">${esc(key)}</div>
+      <div class="wl-bar-wrap"><div class="wl-bar" style="width:${Math.round(n/maxN*100)}%;background:${insightsAbsView==='grade'?'#6366f1':'#f59e0b'}"></div></div>
+      <div class="wl-count" style="color:${insightsAbsView==='grade'?'#4f46e5':'#92400e'}">${n}</div>
+    </div>`).join('')||'<p style="color:#94a3b8;padding:16px">No data — add grade/subject to teacher profiles to see this chart.</p>';
+}
 
 function getAllRosterData(yearFilter){
   const all=[];
@@ -2192,6 +2273,9 @@ function renderInsights(){
   daysWithAbs.forEach(e=>(e.day.absences||[]).forEach(a=>{if(a.teacher)tchrMap[a.teacher]=(tchrMap[a.teacher]||0)+1;}));
   const top15=Object.entries(tchrMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
   const maxT=top15[0]?.[1]||1;
+  // Grade/Subject breakdown
+  renderGradeSubjectList(allEntries);
+
   document.getElementById('insightsTchrList').innerHTML=top15.map(([name,n])=>`
     <div class="wl-row">
       <div class="wl-name" style="width:160px" title="${esc(name)}">${esc(name)}</div>
