@@ -778,6 +778,79 @@ function buildDefault(){
 function lsGet(key){try{const v=localStorage.getItem(key);return v?JSON.parse(v):null;}catch{return null;}}
 function lsSet(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch{}}
 
+// ── normalizeState ────────────────────────────────────────────
+// Firebase converts JS arrays to objects with numeric string keys ("0","1"…).
+// This function converts them back to real arrays everywhere they appear in
+// our state, so .map()/.forEach() never throw.
+function toArr(v, fallback){
+  if(fallback===undefined)fallback=[];
+  if(!v) return fallback;
+  if(Array.isArray(v)) return v;
+  if(typeof v==='object'){
+    const keys=Object.keys(v);
+    if(keys.length===0) return fallback;
+    if(keys.every(k=>/^\d+$/.test(k))){
+      return keys.sort((a,b)=>Number(a)-Number(b)).map(k=>v[k]).filter(x=>x!=null);
+    }
+  }
+  return fallback;
+}
+
+function normalizeState(s){
+  if(!s||typeof s!=='object') return buildDefault();
+  // Teachers
+  s.teachers=toArr(s.teachers).map(t=>({
+    id:t.id||'t'+Math.random(),name:t.name||'',
+    teamsLink:t.teamsLink||'',vrId:t.vrId||'',
+    schedule:{
+      Mon:toArr(t.schedule?.Mon),Tue:toArr(t.schedule?.Tue),
+      Wed:toArr(t.schedule?.Wed),Thu:toArr(t.schedule?.Thu)
+    }
+  }));
+  // Subs
+  s.subs=toArr(s.subs).map(sub=>({
+    id:sub.id||'s'+Math.random(),name:sub.name||'',
+    tier:Number(sub.tier)||TIER_MAP[sub.name]||5,
+    schedule:{
+      Mon:toArr(sub.schedule?.Mon),Tue:toArr(sub.schedule?.Tue),
+      Wed:toArr(sub.schedule?.Wed),Thu:toArr(sub.schedule?.Thu)
+    }
+  }));
+  // If subs list is empty (first load with no seed data pushed yet), re-seed it
+  if(s.subs.length===0){
+    s.subs=SEED_SUBS.map((name,i)=>({id:'s'+i,name,tier:TIER_MAP[name]||5,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]}}));
+  }
+  if(s.teachers.length===0){
+    s.teachers=SEED_TEACHERS.map((name,i)=>({id:'t'+i,name,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]},teamsLink:'',vrId:''}));
+  }
+  // Holidays & links
+  s.holidays=toArr(s.holidays,[...SEED_HOLIDAYS]);
+  s.links=toArr(s.links,[{label:'Teams Links',url:''},{label:'VR Session IDs',url:''}]);
+  // Roster entries
+  if(s.roster&&typeof s.roster==='object'){
+    for(const date of Object.keys(s.roster)){
+      const day=s.roster[date];
+      if(!day||typeof day!=='object'){delete s.roster[date];continue;}
+      day.absences=toArr(day.absences).map(abs=>({
+        teacher:abs.teacher||'',
+        coverage:{
+          HR:abs.coverage?.HR||null,P1:abs.coverage?.P1||null,P2:abs.coverage?.P2||null,
+          P3:abs.coverage?.P3||null,P4:abs.coverage?.P4||null,P5:abs.coverage?.P5||null,
+          P6:abs.coverage?.P6||null
+        }
+      }));
+      day.notes=day.notes||'';
+    }
+  } else {
+    s.roster={};
+  }
+  // Settings
+  if(!s.settings||typeof s.settings!=='object'){
+    s.settings={schoolName:'OptimaED',yearStart:'2025-08-13',yearEnd:'2026-05-28'};
+  }
+  return s;
+}
+
 // ── sync status indicator ─────────────────────────────────────
 function setSyncStatus(status, label){
   const pill=document.getElementById('syncPill');
@@ -833,9 +906,9 @@ function initFirebase(config){
     // ── Real-time listener: apply remote changes locally ──
     fbDb.ref('subCoverageState').on('value', snapshot=>{
       if(fbApplyingRemote) return; // skip echoes of our own writes
-      const remote=snapshot.val();
-      if(!remote) return; // database is empty, don't wipe local state
-      state=remote;
+      const raw=snapshot.val();
+      if(!raw) return; // database is empty, don't wipe local state
+      state=normalizeState(raw);
       lsSet('scm_v2', state); // keep localStorage in sync as offline backup
       reRenderActiveTab();
       setSyncStatus('live');
@@ -894,8 +967,12 @@ async function loadState(){
   if(fbEnabled&&fbDb){
     try{
       const snapshot=await fbDb.ref('subCoverageState').get();
-      if(snapshot.exists()) return snapshot.val();
-      // Database is empty — push our default data up
+      if(snapshot.exists()){
+        const normalized=normalizeState(snapshot.val());
+        // If the database has data but subs/teachers look like seed data needs a push, re-write
+        return normalized;
+      }
+      // Database is empty — build defaults, push them up so all devices get them
       const def=buildDefault();
       await fbDb.ref('subCoverageState').set(def);
       return def;
@@ -1783,6 +1860,19 @@ async function init(){
 
   // Load state (from Firebase if connected, otherwise localStorage/defaults)
   state=await loadState();
+
+  // If the database has stale/corrupted data (e.g. empty subs list despite roster
+  // entries existing), push the full default seed data and rewrite Firebase.
+  // This runs once and corrects any bad state from earlier versions.
+  const needsReseed = fbEnabled && fbDb &&
+    (state.subs.length===0 || state.teachers.length===0);
+  if(needsReseed){
+    console.log('Sub/teacher list empty — reseeding Firebase with default data…');
+    state=buildDefault();
+    fbApplyingRemote=true;
+    fbDb.ref('subCoverageState').set(state).then(()=>{fbApplyingRemote=false;});
+    toast('Data restored from seed — all sub and teacher records are back','ok');
+  }
 
   document.getElementById('schoolNameHdr').textContent=state.settings?.schoolName||'OptimaED';
 
