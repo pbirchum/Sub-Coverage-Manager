@@ -203,6 +203,7 @@ tr:hover td{background:#f8fafc}
   <button class="tab-btn" onclick="switchTab('teachers')" id="tabteachers">👩‍🏫 <span class="lbl">Teachers</span></button>
   <button class="tab-btn" onclick="switchTab('subs')" id="tabsubs">👥 <span class="lbl">Subs</span></button>
   <button class="tab-btn" onclick="switchTab('settings')" id="tabsettings">⚙️ <span class="lbl">Settings</span></button>
+  <button class="tab-btn" onclick="switchTab('insights')" id="tabinsights">🔮 <span class="lbl">Insights</span></button>
 </nav>
 
 <!-- ROSTER -->
@@ -227,6 +228,7 @@ tr:hover td{background:#f8fafc}
       <option value="all">All Time</option>
       <option value="month">By Month</option>
       <option value="week">Current Week</option>
+      <option value="year">By Year</option>
     </select>
     <select id="filtMonth" onchange="renderSummary()" style="width:160px;padding:7px 10px;display:none"></select>
   </div>
@@ -249,7 +251,7 @@ tr:hover td{background:#f8fafc}
           <div style="width:14px;height:14px;border-radius:3px;background:#93c5fd"></div>
           <div style="width:14px;height:14px;border-radius:3px;background:#3b82f6"></div>
           <div style="width:14px;height:14px;border-radius:3px;background:#1e40af"></div>
-        </div><span>4</span>
+        </div><span id="calLegendMax">4+</span>
       </div>
     </div>
     <div id="calHeat"></div>
@@ -298,6 +300,57 @@ tr:hover td{background:#f8fafc}
   </div>
 </section>
 
+<!-- INSIGHTS -->
+<section class="tab-panel" id="panelinsights">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <div>
+      <h2 style="font-size:1rem;font-weight:700">Predictive Insights</h2>
+      <p style="font-size:.8rem;color:#64748b;margin-top:3px">Historical patterns to help you plan next year's coverage needs</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="insightsYear" onchange="renderInsights()" style="width:160px;padding:7px 10px">
+        <option value="all">All Years Combined</option>
+      </select>
+      <button class="btn btn-outline" onclick="openArchiveModal()">📦 Archive Year</button>
+    </div>
+  </div>
+  <div class="stats-row" id="insightsStats"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">📅 Absences by Month</div></div>
+      <canvas id="monthChart" height="220"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">📆 Absences by Day of Week</div></div>
+      <canvas id="dowChart" height="220"></canvas>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">👩‍🏫 Most Absent Teachers (all time)</div></div>
+      <div id="insightsTchrList" style="max-height:340px;overflow-y:auto"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">🗓 High-Need Weeks (projected)</div></div>
+      <div id="insightsWeekList" style="max-height:340px;overflow-y:auto"></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-header"><div class="card-title">⏰ Most-Needed Periods</div></div>
+      <canvas id="periodChart" height="200"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">📊 Year-over-Year Comparison</div></div>
+      <canvas id="yoyChart" height="200"></canvas>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-header"><div class="card-title">📋 Archived School Years</div><button class="btn btn-outline btn-sm" onclick="openArchiveModal()">+ Archive Current Year</button></div>
+    <div id="archiveList"></div>
+  </div>
+</section>
+
 <!-- SETTINGS -->
 <section class="tab-panel" id="panelsettings">
 
@@ -338,10 +391,6 @@ tr:hover td{background:#f8fafc}
           <button class="btn btn-outline btn-sm" onclick="openHolidayModal()">+ Add</button>
         </div>
         <div id="holidayLst" style="max-height:260px;overflow-y:auto"></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">🔗 Teams Links &amp; Resources</div><button class="btn btn-outline btn-sm" onclick="addLink()">+ Add</button></div>
-        <div id="linksList"></div>
       </div>
       <div class="card">
         <div class="card-header"><div class="card-title">💾 Data Management</div></div>
@@ -546,6 +595,81 @@ tr:hover td{background:#f8fafc}
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:18px">
       <button class="btn btn-primary" onclick="closeModal('fbInstrModal');openFbModal()">Got it — Connect Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDULE ABSENCE MODAL -->
+<div class="overlay" id="schedModal">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-head">
+      <div class="modal-title">📅 Schedule Absences</div>
+      <button class="modal-close" onclick="closeModal('schedModal')">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="form-group" style="margin:0">
+        <label>Start Date</label>
+        <input type="date" id="schedStartDate">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>End Date <span style="color:#94a3b8;font-weight:400">(optional — for multi-day)</span></label>
+        <input type="date" id="schedEndDate">
+      </div>
+    </div>
+    <div id="schedTeacherRows"></div>
+    <button class="btn btn-outline btn-sm" onclick="addSchedTeacherRow()" style="margin-bottom:16px">+ Add Another Teacher</button>
+
+    <!-- Long-term assignment toggle -->
+    <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:9px;padding:14px;margin-bottom:16px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:.9rem;font-weight:600;color:#1e3a8a">
+        <input type="checkbox" id="ltaToggle" onchange="toggleLTA()" style="width:18px;height:18px;accent-color:#1e40af">
+        Long-term / Full-time Assignment
+      </label>
+      <p style="font-size:.78rem;color:#475569;margin-top:6px">Use when a sub takes over a teacher's full responsibilities (grading, office hours) for an extended period. The assigned sub will be marked as <em>dedicated</em> and temporarily removed from the tier suggestion pool.</p>
+      <div id="ltaFields" style="display:none;margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin:0">
+          <label>Dedicated Sub</label>
+          <select id="ltaSub" style="font-weight:600">
+            <option value="">— Select Sub —</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Assignment End Date</label>
+          <input type="date" id="ltaEndDate">
+        </div>
+        <div class="form-group" style="margin:0;grid-column:1/-1">
+          <label>Note <span style="color:#94a3b8;font-weight:400">(optional)</span></label>
+          <input type="text" id="ltaNote" placeholder="e.g. Maternity leave coverage">
+        </div>
+      </div>
+    </div>
+
+    <div id="schedError" style="color:#dc2626;font-size:.82rem;display:none;padding:8px 12px;background:#fef2f2;border-radius:7px;margin-bottom:10px"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:14px;border-top:1px solid #f1f5f9">
+      <button class="btn btn-outline" onclick="closeModal('schedModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmScheduleAbsence()">Add to Roster</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHIVE YEAR MODAL -->
+<div class="overlay" id="archiveModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title">📦 Archive School Year</div>
+      <button class="modal-close" onclick="closeModal('archiveModal')">×</button>
+    </div>
+    <p style="font-size:.875rem;color:#475569;margin-bottom:14px">Save this year's complete data for historical analysis, then start fresh for the new school year.</p>
+    <div class="form-group">
+      <label>Year Label</label>
+      <input type="text" id="archiveYearLabel" placeholder="e.g. 2025-2026">
+    </div>
+    <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:12px;font-size:.82rem;color:#92400e;margin-bottom:14px">
+      ⚠ This will save the current roster to history and clear the daily roster for next year. Teacher and sub profiles will be kept.
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn btn-outline" onclick="closeModal('archiveModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="archiveYear()">Archive &amp; Start Fresh</button>
     </div>
   </div>
 </div>
@@ -771,7 +895,9 @@ function buildDefault(){
   }
   return {teachers,subs,roster,holidays:[...SEED_HOLIDAYS],
     settings:{schoolName:'OptimaED',yearStart:'2025-08-13',yearEnd:'2026-05-28'},
-    links:[{label:'Teams Links',url:''},{label:'VR Session IDs',url:''}]};
+    links:[],
+    longTermAssignments:[],
+    archivedYears:{}};
 }
 
 // ── localStorage helpers ──────────────────────────────────────
@@ -847,6 +973,20 @@ function normalizeState(s){
   // Settings
   if(!s.settings||typeof s.settings!=='object'){
     s.settings={schoolName:'OptimaED',yearStart:'2025-08-13',yearEnd:'2026-05-28'};
+  }
+  // Long-term assignments
+  s.longTermAssignments=toArr(s.longTermAssignments,[]);
+  // Archived years (object keyed by year label)
+  if(!s.archivedYears||typeof s.archivedYears!=='object') s.archivedYears={};
+  // Normalize each archived year's roster if present
+  for(const yr of Object.keys(s.archivedYears)){
+    const ay=s.archivedYears[yr];
+    if(ay&&ay.roster&&typeof ay.roster==='object'){
+      for(const date of Object.keys(ay.roster)){
+        const day=ay.roster[date];
+        if(day){day.absences=toArr(day.absences,[]);}
+      }
+    }
   }
   return s;
 }
@@ -1145,9 +1285,12 @@ function getSuggestion(ds, periodId, skipAbsIdx) {
       if (i !== skipAbsIdx && abs.coverage[periodId]) busyThisPeriod.add(abs.coverage[periodId]);
     });
   }
-  // Filter: not double-booked AND available per their schedule
+  // Subs on long-term assignments are dedicated to that classroom — exclude from suggestions
+  const ltaSubs=new Set((state.longTermAssignments||[])
+    .filter(a=>a.startDate<=ds&&a.endDate>=ds).map(a=>a.coverSub));
+  // Filter: not double-booked, available per schedule, and not dedicated to LTA
   const eligible = state.subs.filter(s =>
-    !busyThisPeriod.has(s.name) && isSubAvailableForPeriod(s, ds, periodId)
+    !busyThisPeriod.has(s.name) && !ltaSubs.has(s.name) && isSubAvailableForPeriod(s, ds, periodId)
   );
   if (!eligible.length) return null;
   // Group by tier, pick least-loaded within lowest available tier
@@ -1207,18 +1350,26 @@ function allSubOptions(selected, suggestion) {
 // ═══════════════════════════════════════════════════════════════
 //  NAVIGATION
 // ═══════════════════════════════════════════════════════════════
-function switchTab(tab){
+function switchTab(tab, pushToHistory=true){
+  const valid=['roster','summary','teachers','subs','settings','insights'];
+  if(!valid.includes(tab))tab='roster';
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('tab'+tab).classList.add('active');
-  document.getElementById('panel'+tab).classList.add('active');
+  document.getElementById('tab'+tab)?.classList.add('active');
+  document.getElementById('panel'+tab)?.classList.add('active');
   activeTab=tab;
+  if(pushToHistory) history.pushState({tab}, '', '#'+tab);
   if(tab==='roster')renderRoster();
   else if(tab==='summary')renderSummary();
   else if(tab==='teachers')renderTeachers();
   else if(tab==='subs')renderSubs();
   else if(tab==='settings')renderSettings();
+  else if(tab==='insights')renderInsights();
 }
+window.addEventListener('popstate',e=>{
+  const tab=e.state?.tab||(location.hash.replace('#','')||'roster');
+  switchTab(tab, false);
+});
 function shiftWeek(n){currentDate=addDays(getWeekStart(currentDate),n*7+(n>0?0:0));if(parseDate(currentDate).getDay()===0)currentDate=addDays(currentDate,1);renderRoster();}
 function jumpTo(ds){if(ds){currentDate=ds;renderRoster();}}
 function selectDay(ds){currentDate=ds;renderRoster();}
@@ -1271,6 +1422,14 @@ function renderDayContent(){
   const day=state.roster[ds]||{absences:[],notes:''};
   const conflicts=getConflicts(ds);
   let html='';
+  // Long-term assignments active today
+  const activeLTAs=(state.longTermAssignments||[]).filter(a=>a.startDate<=ds&&a.endDate>=ds);
+  if(activeLTAs.length){
+    html+=activeLTAs.map(a=>`<div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:9px;padding:11px 16px;font-size:.85rem;color:#1e3a8a;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <span>🔵 <strong>Long-term:</strong> ${esc(a.coverSub)} is full-time covering <strong>${esc(a.teacher)}</strong>${a.note?` — ${esc(a.note)}`:''} <span style="font-size:.75rem;opacity:.7">(ends ${a.endDate})</span></span>
+      <button class="btn btn-ghost btn-sm" onclick="removeLTA('${a.id}')">✕</button>
+    </div>`).join('');
+  }
   if(conflicts.length){
     html+=`<div class="conflict-alert">⚠️ <div><strong>Scheduling Conflicts Detected:</strong><br>${conflicts.map(c=>`• ${c}`).join('<br>')}</div></div>`;
   }
@@ -1281,7 +1440,7 @@ function renderDayContent(){
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-outline btn-sm" onclick="copyRoster('${ds}')">📋 Copy Roster</button>
-      <button class="btn btn-primary" onclick="addAbsence('${ds}')">+ Add Absent Teacher</button>
+      <button class="btn btn-primary" onclick="openScheduleModal('${ds}')">📅 Schedule Absence</button>
     </div>
   </div>`;
 
@@ -1450,10 +1609,16 @@ function copyRoster(ds){
 function onFilterChange(){
   const v=document.getElementById('filtType').value;
   const mSel=document.getElementById('filtMonth');
-  mSel.style.display=v==='month'?'':'none';
-  if(v==='month'&&!mSel.options.length){
+  mSel.style.display=(v==='month'||v==='year')?'':'none';
+  mSel.innerHTML='';
+  if(v==='month'){
     const months=new Set(Object.keys(state.roster).map(d=>d.slice(0,7)));
     [...months].sort().forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=fmtMonth(m+'-01');mSel.appendChild(o);});
+  } else if(v==='year'){
+    const o=document.createElement('option');o.value='current';o.textContent='Current Year';mSel.appendChild(o);
+    Object.keys(state.archivedYears||{}).sort().reverse().forEach(yr=>{
+      const op=document.createElement('option');op.value=yr;op.textContent=yr;mSel.appendChild(op);
+    });
   }
   renderSummary();
 }
@@ -1497,16 +1662,17 @@ function renderSummary(){
 
   // Teacher absences
   const tchrCounts=state.teachers.map(t=>({name:t.name,n:getTeacherDays(t.name,sd,ed)}))
-    .filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
-  const maxTn=tchrCounts[0]?.n||1;
+    .sort((a,b)=>b.n-a.n);
+  const maxTn=Math.max(...tchrCounts.map(x=>x.n),1);
   document.getElementById('tchrAbsBody').innerHTML=tchrCounts.map(t=>`<tr>
     <td>${esc(t.name)}</td>
-    <td><strong>${t.n}</strong></td>
-    <td><div style="background:#f1f5f9;border-radius:99px;height:8px;width:120px;overflow:hidden"><div style="background:#8b5cf6;height:100%;border-radius:99px;width:${Math.round(t.n/maxTn*100)}%"></div></div></td>
-  </tr>`).join('')||`<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:20px">No absences recorded</td></tr>`;
+    <td><strong>${t.n>0?t.n:'<span style="color:#94a3b8">0</span>'}</strong></td>
+    <td>${t.n>0?`<div style="background:#f1f5f9;border-radius:99px;height:8px;width:120px;overflow:hidden"><div style="background:#8b5cf6;height:100%;border-radius:99px;width:${Math.round(t.n/maxTn*100)}%"></div></div>`:`<span style="color:#22c55e;font-size:.75rem">✓ Perfect attendance</span>`}</td>
+  </tr>`).join('')||`<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:20px">No teachers found</td></tr>`;
 
   // Calendar heatmap
-  renderCalendar();
+  const calYear=document.getElementById('filtType')?.value==='year'?document.getElementById('filtMonth')?.value:'current';
+  renderCalendar(calYear);
 
   // Absence log
   const logRows=Object.entries(state.roster).filter(([d,day])=>
@@ -1524,36 +1690,60 @@ function renderSummary(){
   }).join('')||`<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px">No absences in this range</td></tr>`;
 }
 
-function renderCalendar(){
+function getRosterForYear(yearLabel){
+  // Returns the roster object for a given year label or 'current'
+  if(!yearLabel||yearLabel==='current'||yearLabel===state.settings.currentYearLabel) return state.roster;
+  return state.archivedYears?.[yearLabel]?.roster||{};
+}
+
+function renderCalendar(yearLabel){
   const el=document.getElementById('calHeat');
-  const start=parseDate(state.settings.yearStart||'2025-08-13');
-  const end=parseDate(state.settings.yearEnd||'2026-05-28');
-  const months={};
-  const d=new Date(start);d.setDate(1);
+  if(!el)return;
+  const roster=getRosterForYear(yearLabel);
+  const sy=yearLabel&&yearLabel!=='current'&&state.archivedYears?.[yearLabel]
+    ? (state.archivedYears[yearLabel].settings?.yearStart||'2025-08-13')
+    : (state.settings.yearStart||'2025-08-13');
+  const ey=yearLabel&&yearLabel!=='current'&&state.archivedYears?.[yearLabel]
+    ? (state.archivedYears[yearLabel].settings?.yearEnd||'2026-05-28')
+    : (state.settings.yearEnd||'2026-05-28');
+  const start=parseDate(sy); const end=parseDate(ey);
+  const months={}; const d=new Date(start); d.setDate(1);
+  let globalMax=1;
   while(d<=end){
     const mk=dateStr(d).slice(0,7);
     if(!months[mk])months[mk]=[];
     const ds=dateStr(d);
-    const day=parseDate(ds);
-    const dow=day.getDay();
+    const dow=parseDate(ds).getDay();
     if(dow>=1&&dow<=4){
-      const abs=state.roster[ds]?.absences?.length||0;
+      const abs=roster[ds]?.absences?.length||0;
       const hol=isHoliday(ds);
+      if(abs>globalMax)globalMax=abs;
       months[mk].push({ds,dow,abs,hol});
     }
     d.setDate(d.getDate()+1);
   }
+  // Build adaptive legend
+  const buckets=Math.min(globalMax,8); // up to 8 color stops
+  const legendEl=document.getElementById('calLegendMax');
+  if(legendEl)legendEl.textContent=globalMax;
+  // Assign heat class: c0 = 0, c1-c4 distributed across 1..globalMax
+  function heatCls(abs){
+    if(abs===0)return'c0';
+    const ratio=abs/globalMax;
+    if(ratio<=0.25)return'c1';
+    if(ratio<=0.5)return'c2';
+    if(ratio<=0.75)return'c3';
+    return'c4';
+  }
   let html='';
   for(const[mk,days] of Object.entries(months)){
     html+=`<div class="cal-month-lbl">${fmtMonth(mk+'-01')}</div><div class="cal-grid">`;
-    // pad start
     const firstDow=days[0]?.dow||1;
     for(let i=1;i<firstDow;i++)html+=`<div class="cal-cell empty"></div>`;
     days.forEach(({ds,abs,hol})=>{
       const d2=parseDate(ds);
-      const cls=hol?'holiday':abs===0?'c0':abs===1?'c1':abs===2?'c2':abs===3?'c3':'c4';
-      const lbl=d2.getDate();
-      html+=`<div class="cal-cell ${cls}" title="${ds}${hol?' — Holiday':abs>0?' — '+abs+' absent':' — Clear'}" onclick="if(!${hol})jumpToRoster('${ds}')">${lbl}</div>`;
+      const cls=hol?'holiday':heatCls(abs);
+      html+=`<div class="cal-cell ${cls}" title="${ds}: ${hol?'Holiday':abs>0?abs+' absent':'Clear'}" onclick="if(!${hol})jumpToRoster('${ds}')" style="cursor:${hol?'default':'pointer'}">${d2.getDate()}</div>`;
     });
     html+=`</div>`;
   }
@@ -1647,13 +1837,11 @@ function deleteTeacher(id){
 function renderSubs(){
   const now=new Date();
   const monthStart=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
-  // Sort by tier asc, then periods desc within tier
   const wls=state.subs.map(s=>({...s,tier:s.tier||5,total:getSubPeriods(s.name),month:getSubPeriods(s.name,monthStart)}))
     .sort((a,b)=>(a.tier-b.tier)||b.total-a.total);
   const maxN=Math.max(...wls.map(s=>s.total),1);
   let rows='',lastTier=null;
   wls.forEach((s,i)=>{
-    // Insert tier separator row
     if(s.tier!==lastTier){
       const tierCss=TIER_CSS[s.tier]||'tier5';
       rows+=`<tr style="background:#fafafa"><td colspan="6" style="padding:8px 13px;font-size:.78rem;font-weight:700;color:#475569;border-bottom:1px solid #e2e8f0">
@@ -1664,9 +1852,10 @@ function renderSubs(){
     const pct=Math.round(s.total/maxN*100);
     const cls=pct>80?'heavy':pct<30?'light':'';
     const hasAvail=s.schedule&&Object.values(s.schedule).some(p=>p?.length>0);
-    rows+=`<tr>
+    const ltaActive=(state.longTermAssignments||[]).some(a=>a.coverSub===s.name&&a.startDate<=dateStr(now)&&a.endDate>=dateStr(now));
+    rows+=`<tr${ltaActive?' style="background:#eff6ff"':''}>
       <td><span class="tier-badge ${TIER_CSS[s.tier]||'tier5'}">T${s.tier}</span></td>
-      <td><strong>${esc(s.name)}</strong>${hasAvail?` <span class="badge badge-blue" style="font-size:.65rem">Avail set</span>`:''}</td>
+      <td><strong>${esc(s.name)}</strong>${hasAvail?` <span class="badge badge-blue" style="font-size:.65rem">Avail set</span>`:''}${ltaActive?` <span class="badge badge-purple" style="font-size:.65rem">LTA Active</span>`:''}</td>
       <td>${s.total}</td>
       <td>${s.month}</td>
       <td><div style="background:#f1f5f9;border-radius:99px;height:10px;width:160px;overflow:hidden">
@@ -1686,7 +1875,6 @@ function openSubModal(id){
   document.getElementById('subNameIn').value=s?.name||'';
   document.getElementById('subTierIn').value=s?.tier||5;
   document.getElementById('subModalId').value=id||'';
-  // Build availability schedule grid (same structure as teacher schedule)
   let html=`<div class="sched-head"></div>`;
   ['Mon','Tue','Wed','Thu'].forEach(d=>html+=`<div class="sched-head">${d}</div>`);
   for(const p of PERIOD_DEFS){
@@ -1730,28 +1918,27 @@ function renderSettings(){
   document.getElementById('sSchool').value=s.schoolName||'';
   document.getElementById('sStart').value=s.yearStart||'';
   document.getElementById('sEnd').value=s.yearEnd||'';
-  // Period editor
-  document.getElementById('periodEd').innerHTML=state.periods?
-    state.periods.map((p,i)=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-      <input type="text" value="${esc(p.label)}" oninput="state.periods[${i}].label=this.value" style="width:110px">
-      <input type="text" value="${esc(p.time)}" oninput="state.periods[${i}].time=this.value" style="width:120px;font-size:.8rem">
-    </div>`).join('')
-    : PERIOD_DEFS.map((p,i)=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+  document.getElementById('periodEd').innerHTML=PERIOD_DEFS.map(p=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
       <span style="width:35px;font-weight:700;font-size:.85rem">${p.id}</span>
       <span style="font-size:.82rem;color:#64748b">${p.time}</span>
     </div>`).join('');
-  // Holidays
   document.getElementById('holidayLst').innerHTML=state.holidays.sort((a,b)=>a.date<b.date?-1:1)
     .map((h,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f8fafc">
       <span style="font-size:.875rem"><strong>${h.date}</strong> — ${esc(h.label)}</span>
       <button class="btn-ghost btn btn-sm" onclick="removeHoliday(${i})">✕</button>
     </div>`).join('')||'<p style="color:#94a3b8;font-size:.85rem">No no-school days added</p>';
-  // Links
-  document.getElementById('linksList').innerHTML=(state.links||[]).map((l,i)=>`<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
-    <input type="text" value="${esc(l.label)}" placeholder="Label" style="width:130px;font-size:.85rem" oninput="state.links[${i}].label=this.value">
-    <input type="text" value="${esc(l.url)}" placeholder="URL" style="flex:1;font-size:.85rem" oninput="state.links[${i}].url=this.value">
-    <button class="btn btn-ghost btn-sm" onclick="state.links.splice(${i},1);saveState();renderSettings()">✕</button>
-  </div>`).join('');
+  // Active long-term assignments
+  const ltas=state.longTermAssignments||[];
+  const ltaHtml=ltas.length?`<div style="margin-top:16px">
+    <div style="font-size:.85rem;font-weight:700;color:#1e293b;margin-bottom:8px">🔵 Active Long-term Assignments</div>
+    ${ltas.map(a=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f8fafc;font-size:.85rem">
+      <span><strong>${esc(a.coverSub)}</strong> covering <strong>${esc(a.teacher)}</strong> · ${a.startDate} → ${a.endDate}${a.note?' · <em>'+esc(a.note)+'</em>':''}</span>
+      <button class="btn btn-danger btn-sm" onclick="removeLTA('${a.id}')">Remove</button>
+    </div>`).join('')}
+  </div>`:'';
+  const fbCard=document.getElementById('fbSetupCard');
+  if(fbCard)renderFbSettingsCard(fbEnabled, BUILT_IN_FIREBASE_CONFIG?.projectId||'');
+  document.getElementById('holidayLst').innerHTML+= ltaHtml;
 }
 function saveSettings(){
   state.settings.schoolName=document.getElementById('sSchool').value.trim()||'OptimaED';
@@ -1760,11 +1947,6 @@ function saveSettings(){
   saveState();
   document.getElementById('schoolNameHdr').textContent=state.settings.schoolName;
   toast('Settings saved','ok');
-}
-function addLink(){
-  if(!state.links)state.links=[];
-  state.links.push({label:'',url:''});
-  renderSettings();
 }
 function openHolidayModal(){openModal('holModal');}
 function saveHoliday(){
@@ -1783,7 +1965,6 @@ function removeHoliday(i){state.holidays.splice(i,1);saveState();renderSettings(
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('overlay'))e.target.classList.remove('open');});
-
 function toast(msg,type='ok'){
   const el=document.createElement('div');
   el.className=`toast ${type}`;el.textContent=msg;
@@ -1793,7 +1974,7 @@ function toast(msg,type='ok'){
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  EXPORT / IMPORT
+//  EXPORT / IMPORT / PRINT
 // ═══════════════════════════════════════════════════════════════
 function exportData(){
   const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
@@ -1805,16 +1986,12 @@ function importData(e){
   const file=e.target.files[0];if(!file)return;
   const r=new FileReader();
   r.onload=ev=>{
-    try{state=JSON.parse(ev.target.result);saveState();switchTab(activeTab);toast('Data imported successfully','ok');}
+    try{state=normalizeState(JSON.parse(ev.target.result));saveState();switchTab(activeTab);toast('Data imported','ok');}
     catch{toast('Invalid file format','err');}
   };
   r.readAsText(file);e.target.value='';
 }
 function resetData(){state=buildDefault();saveState();switchTab('roster');toast('Reset to original data','ok');}
-
-// ═══════════════════════════════════════════════════════════════
-//  PRINT
-// ═══════════════════════════════════════════════════════════════
 function printRoster(){
   const ds=currentDate;
   const day=state.roster[ds]||{absences:[],notes:''};
@@ -1822,15 +1999,17 @@ function printRoster(){
   <style>body{font-family:Arial,sans-serif;padding:20px;font-size:12px}
   table{width:100%;border-collapse:collapse;margin-bottom:16px}
   th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}
-  th{background:#f0f0f0;font-weight:bold}
-  h1{font-size:16px}h2{font-size:13px;margin-top:16px}
+  th{background:#f0f0f0;font-weight:bold}h1{font-size:16px}h2{font-size:13px;margin-top:16px}
   .covered{background:#dcfce7}.empty{background:#fee2e2}</style></head><body>
   <h1>Sub Coverage — ${fmtLong(ds)}</h1>`;
   if(!day.absences.length){html+='<p>No absences today.</p>';}
   else{
     day.absences.forEach(abs=>{
-      html+=`<h2>${abs.teacher||'Unknown Teacher'}</h2><table>
-      <tr>${PERIOD_DEFS.map(p=>`<th>${p.id}<br><small>${p.time}</small>`).join('')}</tr>
+      const teacher=state.teachers.find(t=>t.name===abs.teacher);
+      html+=`<h2>${abs.teacher||'Unknown Teacher'}</h2>`;
+      if(teacher?.teamsLink)html+=`<p>🔗 Teams: <a href="${teacher.teamsLink}">${teacher.teamsLink}</a></p>`;
+      if(teacher?.vrId)html+=`<p>🥽 VR Session ID: <strong>${teacher.vrId}</strong></p>`;
+      html+=`<table><tr>${PERIOD_DEFS.map(p=>`<th>${p.id}<br><small>${p.time}</small>`).join('')}</tr>
       <tr>${PERIOD_DEFS.map(p=>{const v=abs.coverage[p.id];return`<td class="${v?'covered':'empty'}">${v||'—'}</td>`;}).join('')}</tr></table>`;
     });
   }
@@ -1840,50 +2019,291 @@ function printRoster(){
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  SCHEDULE ABSENCE MODAL
+// ═══════════════════════════════════════════════════════════════
+function openScheduleModal(ds){
+  document.getElementById('schedStartDate').value=ds||currentDate;
+  document.getElementById('schedEndDate').value='';
+  document.getElementById('ltaToggle').checked=false;
+  document.getElementById('ltaFields').style.display='none';
+  document.getElementById('ltaNote').value='';
+  document.getElementById('schedError').style.display='none';
+  document.getElementById('schedTeacherRows').innerHTML='';
+  addSchedTeacherRow();
+  const ltaSel=document.getElementById('ltaSub');
+  ltaSel.innerHTML='<option value="">— Select Sub —</option>'+
+    state.subs.map(s=>`<option value="${esc(s.name)}">${esc(s.name)} (T${s.tier||5})</option>`).join('');
+  openModal('schedModal');
+}
+function addSchedTeacherRow(){
+  const container=document.getElementById('schedTeacherRows');
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:8px;margin-bottom:10px;align-items:center';
+  const opts=state.teachers.map(t=>`<option value="${esc(t.name)}">${esc(t.name)}</option>`).join('');
+  row.innerHTML=`<select style="flex:1;padding:8px 12px;border:1.5px solid #CBD5E1;border-radius:7px;font-size:.9rem">
+    <option value="">— Select Teacher —</option>${opts}</select>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()" style="flex-shrink:0">✕</button>`;
+  container.appendChild(row);
+}
+function toggleLTA(){
+  const on=document.getElementById('ltaToggle').checked;
+  document.getElementById('ltaFields').style.display=on?'grid':'none';
+}
+function confirmScheduleAbsence(){
+  const errEl=document.getElementById('schedError');errEl.style.display='none';
+  const start=document.getElementById('schedStartDate').value;
+  if(!start){errEl.textContent='Please select a start date.';errEl.style.display='block';return;}
+  const teachers=[...document.querySelectorAll('#schedTeacherRows select')].map(s=>s.value).filter(Boolean);
+  if(!teachers.length){errEl.textContent='Please select at least one teacher.';errEl.style.display='block';return;}
+  const rawEnd=document.getElementById('schedEndDate').value;
+  const endDate=rawEnd&&rawEnd>=start?rawEnd:start;
+  const dates=[];
+  let cur=start;
+  while(cur<=endDate){
+    if(isSchoolDay(cur))dates.push(cur);
+    cur=addDays(cur,1);
+    if(dates.length>200)break;
+  }
+  if(!dates.length){errEl.textContent='No school days in that range.';errEl.style.display='block';return;}
+  dates.forEach(ds=>{
+    const day=ensureDay(ds);
+    teachers.forEach(teacherName=>{
+      if(!day.absences.find(a=>a.teacher===teacherName))
+        day.absences.push({teacher:teacherName,coverage:{HR:null,P1:null,P2:null,P3:null,P4:null,P5:null,P6:null}});
+    });
+  });
+  const isLTA=document.getElementById('ltaToggle').checked;
+  if(isLTA){
+    const coverSub=document.getElementById('ltaSub').value;
+    const ltaEnd=document.getElementById('ltaEndDate').value||endDate;
+    const note=document.getElementById('ltaNote').value.trim();
+    if(!coverSub){errEl.textContent='Please select a dedicated sub.';errEl.style.display='block';return;}
+    if(!state.longTermAssignments)state.longTermAssignments=[];
+    teachers.forEach(teacherName=>{
+      state.longTermAssignments.push({
+        id:'lta_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+        teacher:teacherName,coverSub,startDate:start,endDate:ltaEnd,note
+      });
+    });
+  }
+  saveState();closeModal('schedModal');
+  currentDate=dates[0];renderRoster();
+  toast(`Scheduled ${teachers.length} absence${teachers.length>1?'s':''} across ${dates.length} day${dates.length>1?'s':''}`, 'ok');
+}
+function removeLTA(id){
+  state.longTermAssignments=(state.longTermAssignments||[]).filter(a=>a.id!==id);
+  saveState();
+  if(activeTab==='roster')renderDayContent();
+  else renderSettings();
+  toast('Long-term assignment removed','ok');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  YEAR ARCHIVE
+// ═══════════════════════════════════════════════════════════════
+function openArchiveModal(){
+  document.getElementById('archiveYearLabel').value=state.settings?.currentYearLabel||'2025-2026';
+  openModal('archiveModal');
+}
+function archiveYear(){
+  const label=document.getElementById('archiveYearLabel').value.trim();
+  if(!label){toast('Please enter a year label','warn');return;}
+  if(!state.archivedYears)state.archivedYears={};
+  state.archivedYears[label]={
+    roster:JSON.parse(JSON.stringify(state.roster)),
+    settings:JSON.parse(JSON.stringify(state.settings)),
+    archivedAt:new Date().toISOString()
+  };
+  state.roster={};
+  state.longTermAssignments=[];
+  state.settings.currentYearLabel=label;
+  saveState();closeModal('archiveModal');
+  renderRoster();
+  if(activeTab==='insights')renderInsights();
+  toast(`Year "${label}" archived! Roster cleared for next year.`,'ok');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INSIGHTS TAB
+// ═══════════════════════════════════════════════════════════════
+let monthChartInst=null,dowChartInst=null,periodChartInst=null,yoyChartInst=null;
+
+function getAllRosterData(yearFilter){
+  const all=[];
+  if(!yearFilter||yearFilter==='all'){
+    all.push({label:'Current',roster:state.roster});
+    Object.entries(state.archivedYears||{}).forEach(([yr,d])=>all.push({label:yr,roster:d.roster||{}}));
+  } else if(yearFilter==='current'){
+    all.push({label:'Current',roster:state.roster});
+  } else {
+    const d=state.archivedYears?.[yearFilter];
+    if(d)all.push({label:yearFilter,roster:d.roster||{}});
+  }
+  return all;
+}
+
+function renderInsights(){
+  const sel=document.getElementById('insightsYear');
+  const curVal=sel?.value||'all';
+  if(sel){
+    sel.innerHTML='<option value="all">All Years Combined</option><option value="current">Current Year</option>';
+    Object.keys(state.archivedYears||{}).sort().reverse().forEach(yr=>{
+      sel.innerHTML+=`<option value="${yr}"${yr===curVal?' selected':''}>${yr}</option>`;
+    });
+    if(curVal!=='all'&&curVal!=='current')sel.value=curVal;
+  }
+  const allRosters=getAllRosterData(sel?.value||'all');
+  const allEntries=allRosters.flatMap(({label,roster})=>
+    Object.entries(roster||{}).map(([date,day])=>({date,day,year:label})));
+  const daysWithAbs=allEntries.filter(e=>e.day.absences?.length>0);
+  const totalAbs=daysWithAbs.reduce((n,e)=>n+e.day.absences.length,0);
+  const totalPeriods=allEntries.reduce((n,e)=>
+    n+(e.day.absences||[]).reduce((m,a)=>m+Object.values(a.coverage||{}).filter(Boolean).length,0),0);
+
+  document.getElementById('insightsStats').innerHTML=`
+    <div class="stat-card"><div class="stat-value">${daysWithAbs.length}</div><div class="stat-label">Days with Absences</div></div>
+    <div class="stat-card" style="border-left-color:#8b5cf6"><div class="stat-value" style="color:#5b21b6">${totalAbs}</div><div class="stat-label">Total Absences</div></div>
+    <div class="stat-card" style="border-left-color:#22c55e"><div class="stat-value" style="color:#15803d">${totalPeriods}</div><div class="stat-label">Total Periods Covered</div></div>
+    <div class="stat-card" style="border-left-color:#f59e0b"><div class="stat-value" style="color:#92400e">${Object.keys(state.archivedYears||{}).length}</div><div class="stat-label">Archived Years</div></div>`;
+
+  // Monthly chart
+  const monthCounts={};
+  daysWithAbs.forEach(e=>{const m=e.date.slice(0,7);monthCounts[m]=(monthCounts[m]||0)+e.day.absences.length;});
+  const mLabels=Object.keys(monthCounts).sort();
+  if(monthChartInst){monthChartInst.destroy();monthChartInst=null;}
+  const mCtx=document.getElementById('monthChart')?.getContext('2d');
+  if(mCtx&&mLabels.length)monthChartInst=new Chart(mCtx,{type:'bar',data:{
+    labels:mLabels.map(m=>fmtMonth(m+'-01').replace(' 20',"'")),
+    datasets:[{label:'Absences',data:mLabels.map(m=>monthCounts[m]),backgroundColor:'#93c5fd',borderColor:'#3b82f6',borderWidth:1.5,borderRadius:4}]
+  },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+
+  // Day of week chart
+  const dowC={1:0,2:0,3:0,4:0};
+  daysWithAbs.forEach(e=>{const dow=parseDate(e.date).getDay();if(dowC[dow]!==undefined)dowC[dow]+=e.day.absences.length;});
+  if(dowChartInst){dowChartInst.destroy();dowChartInst=null;}
+  const dCtx=document.getElementById('dowChart')?.getContext('2d');
+  if(dCtx)dowChartInst=new Chart(dCtx,{type:'bar',data:{
+    labels:['Monday','Tuesday','Wednesday','Thursday'],
+    datasets:[{label:'Absences',data:[dowC[1],dowC[2],dowC[3],dowC[4]],backgroundColor:['#dbeafe','#bfdbfe','#93c5fd','#60a5fa'],borderRadius:6}]
+  },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+
+  // Most absent teachers
+  const tchrMap={};
+  daysWithAbs.forEach(e=>(e.day.absences||[]).forEach(a=>{if(a.teacher)tchrMap[a.teacher]=(tchrMap[a.teacher]||0)+1;}));
+  const top15=Object.entries(tchrMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  const maxT=top15[0]?.[1]||1;
+  document.getElementById('insightsTchrList').innerHTML=top15.map(([name,n])=>`
+    <div class="wl-row">
+      <div class="wl-name" style="width:160px" title="${esc(name)}">${esc(name)}</div>
+      <div class="wl-bar-wrap"><div class="wl-bar" style="width:${Math.round(n/maxT*100)}%;background:#8b5cf6"></div></div>
+      <div class="wl-count" style="color:#5b21b6">${n}</div>
+    </div>`).join('')||'<p style="color:#94a3b8;padding:16px">No data yet</p>';
+
+  // High-need weeks
+  const weekMap={};
+  daysWithAbs.forEach(e=>{
+    const d=parseDate(e.date);const jan1=new Date(d.getFullYear(),0,1);
+    const wk=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+    const key=`Week ${wk}`;
+    if(!weekMap[key]){weekMap[key]={total:0,years:new Set()};}
+    weekMap[key].total+=e.day.absences.length;weekMap[key].years.add(e.year);
+  });
+  const weekAvg=Object.entries(weekMap).map(([wk,{total,years}])=>({wk,avg:total/Math.max(years.size,1)}))
+    .sort((a,b)=>b.avg-a.avg).slice(0,10);
+  const maxW=weekAvg[0]?.avg||1;
+  document.getElementById('insightsWeekList').innerHTML=
+    `<p style="font-size:.78rem;color:#64748b;margin-bottom:8px">Average absences per week across all years</p>`+
+    weekAvg.map(({wk,avg})=>`<div class="wl-row">
+      <div class="wl-name" style="width:75px;font-size:.8rem">${wk}</div>
+      <div class="wl-bar-wrap"><div class="wl-bar" style="width:${Math.round(avg/maxW*100)}%;background:#f59e0b"></div></div>
+      <div class="wl-count" style="color:#92400e;font-size:.8rem">${avg.toFixed(1)}</div>
+    </div>`).join('')||'<p style="color:#94a3b8;padding:16px">No data yet</p>';
+
+  // Period demand
+  const pCounts={HR:0,P1:0,P2:0,P3:0,P4:0,P5:0,P6:0};
+  allEntries.forEach(e=>(e.day.absences||[]).forEach(a=>
+    Object.entries(a.coverage||{}).forEach(([p,sub])=>{if(sub&&pCounts[p]!==undefined)pCounts[p]++;})
+  ));
+  if(periodChartInst){periodChartInst.destroy();periodChartInst=null;}
+  const pCtx=document.getElementById('periodChart')?.getContext('2d');
+  if(pCtx)periodChartInst=new Chart(pCtx,{type:'bar',data:{
+    labels:Object.keys(pCounts),
+    datasets:[{label:'Times Covered',data:Object.values(pCounts),backgroundColor:'#a5f3fc',borderColor:'#06b6d4',borderWidth:1.5,borderRadius:4}]
+  },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+  // Year-over-year
+  const yoyData={};
+  allRosters.forEach(({label,roster})=>{
+    yoyData[label]=Object.values(roster||{}).reduce((n,day)=>n+(day.absences?.length||0),0);
+  });
+  if(yoyChartInst){yoyChartInst.destroy();yoyChartInst=null;}
+  const yCtx=document.getElementById('yoyChart')?.getContext('2d');
+  if(yCtx&&Object.keys(yoyData).length)yoyChartInst=new Chart(yCtx,{type:'bar',data:{
+    labels:Object.keys(yoyData),
+    datasets:[{label:'Total Absences',data:Object.values(yoyData),backgroundColor:'#bbf7d0',borderColor:'#22c55e',borderWidth:1.5,borderRadius:4}]
+  },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+  // Archive list
+  const archKeys=Object.keys(state.archivedYears||{}).sort().reverse();
+  document.getElementById('archiveList').innerHTML=archKeys.length
+    ?archKeys.map(yr=>{
+        const d=state.archivedYears[yr];
+        const cnt=Object.keys(d.roster||{}).length;
+        const abs=Object.values(d.roster||{}).reduce((n,day)=>n+(day.absences?.length||0),0);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f8fafc">
+          <div><strong>${esc(yr)}</strong><span style="font-size:.8rem;color:#64748b;margin-left:10px">${cnt} days · ${abs} absences · archived ${new Date(d.archivedAt).toLocaleDateString()}</span></div>
+          <button class="btn btn-danger btn-sm" onclick="if(confirm('Delete archived year?')){delete state.archivedYears['${esc(yr)}'];saveState();renderInsights();toast('Archive deleted','ok');}">🗑 Delete</button>
+        </div>`;
+      }).join('')
+    :'<p style="color:#94a3b8;padding:16px">No archived years yet. Archive this year when it ends to unlock year-over-year analysis.</p>';
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════════
 async function init(){
-  // Set up header date immediately
   const today=new Date();
   document.getElementById('todayHdr').textContent=today.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
 
-  // Auto-connect using built-in config (works for every visitor automatically).
-  // Falls back to any manually-stored config if somehow the built-in is cleared.
-  const configToUse = BUILT_IN_FIREBASE_CONFIG || getStoredFbConfig();
+  // Auto-connect with built-in Firebase config
+  const configToUse=BUILT_IN_FIREBASE_CONFIG||getStoredFbConfig();
   if(configToUse?.databaseURL){
     setSyncStatus('connecting');
     initFirebase(configToUse);
-    renderFbSettingsCard(true, configToUse.projectId||configToUse.databaseURL);
+    renderFbSettingsCard(true,configToUse.projectId||configToUse.databaseURL);
   } else {
     setSyncStatus('no-firebase');
   }
 
-  // Load state (from Firebase if connected, otherwise localStorage/defaults)
+  // Load state
   state=await loadState();
 
-  // If the database has stale/corrupted data (e.g. empty subs list despite roster
-  // entries existing), push the full default seed data and rewrite Firebase.
-  // This runs once and corrects any bad state from earlier versions.
-  const needsReseed = fbEnabled && fbDb &&
-    (state.subs.length===0 || state.teachers.length===0);
-  if(needsReseed){
-    console.log('Sub/teacher list empty — reseeding Firebase with default data…');
+  // Reseed if subs/teachers missing (first Firebase load or corrupted data)
+  if(fbEnabled&&fbDb&&(state.subs.length===0||state.teachers.length===0)){
     state=buildDefault();
     fbApplyingRemote=true;
     fbDb.ref('subCoverageState').set(state).then(()=>{fbApplyingRemote=false;});
-    toast('Data restored from seed — all sub and teacher records are back','ok');
+    toast('Data restored from seed','ok');
   }
 
   document.getElementById('schoolNameHdr').textContent=state.settings?.schoolName||'OptimaED';
 
-  // Jump to today, backing up to Thursday if it's a weekend
+  // Navigate to today (back up to Thu if weekend)
   currentDate=dateStr(today);
   const dow=today.getDay();
   if(dow===5)currentDate=addDays(currentDate,-1);
   else if(dow===6)currentDate=addDays(currentDate,-2);
   else if(dow===0)currentDate=addDays(currentDate,-3);
 
-  renderRoster();
+  // Respect URL hash for tab (supports browser back/forward on first load)
+  const initTab=location.hash.replace('#','');
+  const validTabs=['roster','summary','teachers','subs','settings','insights'];
+  if(validTabs.includes(initTab)){
+    switchTab(initTab,false);
+  } else {
+    renderRoster();
+    history.replaceState({tab:'roster'},'','#roster');
+  }
 }
 
 init();
