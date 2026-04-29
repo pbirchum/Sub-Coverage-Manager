@@ -444,16 +444,52 @@ tr:hover td{background:#f8fafc}
           <option>Multiple Grades</option><option>School-Wide</option>
         </select>
       </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>📚 Subject</label>
-        <select id="tchrSubject">
-          <option value="">— Select —</option>
-          <option>ELA / Reading</option><option>Math</option><option>Science</option>
-          <option>Social Studies</option><option>History</option><option>PE / Health</option>
-          <option>Art</option><option>Music</option><option>Technology</option>
-          <option>Special Education</option><option>ESL / ELL</option>
-          <option>Counseling</option><option>Administration</option><option>Other</option>
-        </select>
+      <div class="form-group" style="margin-bottom:0;grid-column:1/-1">
+        <label>📚 Subjects Taught (select all that apply)</label>
+        <div id="tchrSubjectGrid" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;padding:10px;background:#f8fafc;border:1.5px solid #CBD5E1;border-radius:7px;max-height:140px;overflow-y:auto">
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="ELA / Reading" style="accent-color:#1e40af;width:14px;height:14px"> ELA / Reading
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Math" style="accent-color:#1e40af;width:14px;height:14px"> Math
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Science" style="accent-color:#1e40af;width:14px;height:14px"> Science
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Social Studies" style="accent-color:#1e40af;width:14px;height:14px"> Social Studies
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="History" style="accent-color:#1e40af;width:14px;height:14px"> History
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="PE / Health" style="accent-color:#1e40af;width:14px;height:14px"> PE / Health
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Art" style="accent-color:#1e40af;width:14px;height:14px"> Art
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Music" style="accent-color:#1e40af;width:14px;height:14px"> Music
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Technology" style="accent-color:#1e40af;width:14px;height:14px"> Technology
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Special Education" style="accent-color:#1e40af;width:14px;height:14px"> Special Education
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="ESL / ELL" style="accent-color:#1e40af;width:14px;height:14px"> ESL / ELL
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Counseling" style="accent-color:#1e40af;width:14px;height:14px"> Counseling
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Administration" style="accent-color:#1e40af;width:14px;height:14px"> Administration
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Other" style="accent-color:#1e40af;width:14px;height:14px"> Other
+          </label>
+        </div>
       </div>
     </div>
     <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">Weekly Schedule (check periods this teacher teaches)</label>
@@ -962,7 +998,7 @@ function normalizeState(s){
   s.teachers=toArr(s.teachers).map(t=>({
     id:t.id||'t'+Math.random(),name:t.name||'',
     teamsLink:t.teamsLink||'',vrId:t.vrId||'',
-    grade:t.grade||'',subject:t.subject||'',
+    grade:t.grade||'',subjects:toArr(t.subjects,t.subject?[t.subject]:[]),
     schedule:{
       Mon:toArr(t.schedule?.Mon),Tue:toArr(t.schedule?.Tue),
       Wed:toArr(t.schedule?.Wed),Thu:toArr(t.schedule?.Thu)
@@ -1814,7 +1850,9 @@ function renderTeachers(){
       return `<tr>
         <td><strong>${esc(t.name)}</strong></td>
         <td style="font-size:.8rem">${t.grade?esc(t.grade):'<span style="color:#94a3b8">—</span>'}</td>
-        <td style="font-size:.8rem">${t.subject?esc(t.subject):'<span style="color:#94a3b8">—</span>'}</td>
+        <td style="font-size:.8rem;max-width:140px">${(t.subjects||[t.subject].filter(Boolean)).length?
+          (t.subjects||[t.subject].filter(Boolean)).map(s=>`<span style="display:inline-block;background:#eff6ff;color:#1e40af;border-radius:4px;padding:1px 6px;font-size:.7rem;margin:1px;white-space:nowrap">${esc(s)}</span>`).join('')
+          :'<span style="color:#94a3b8">—</span>'}</td>
         <td>${hasSchedule?`<span class="badge badge-green">✓ Set</span>`:`<span class="badge badge-gray">Not set</span>`}</td>
         <td>${t.teamsLink?`<a href="${esc(t.teamsLink)}" target="_blank" style="color:#1e40af;font-size:.8rem">🔗 Teams</a> `:''}${t.vrId?`<span style="font-size:.8rem">🥽 ${esc(t.vrId)}</span>`:''}${!hasLinks?`<span style="color:#94a3b8;font-size:.8rem">—</span>`:''}</td>
         <td>${days>0?`<span class="badge badge-red">${days} day${days!==1?'s':''}</span>`:`<span style="color:#94a3b8">0</span>`}</td>
@@ -1832,7 +1870,11 @@ function openTeacherModal(id){
   document.getElementById('tchrTeamsIn').value=t?.teamsLink||'';
   document.getElementById('tchrVrIn').value=t?.vrId||'';
   document.getElementById('tchrGrade').value=t?.grade||'';
-  document.getElementById('tchrSubject').value=t?.subject||'';
+  // Multi-subject: tick the right checkboxes
+  const savedSubjects=t?.subjects||( t?.subject ? [t.subject] : [] );
+  document.querySelectorAll('.tchr-subject-cb').forEach(cb=>{
+    cb.checked=savedSubjects.includes(cb.value);
+  });
   document.getElementById('tchrModalId').value=id||'';
   // Build schedule grid
   let html=`<div class="sched-head"></div>`;
@@ -1862,12 +1904,12 @@ function saveTeacher(){
   const teamsLink=document.getElementById('tchrTeamsIn').value.trim();
   const vrId=document.getElementById('tchrVrIn').value.trim();
   const grade=document.getElementById('tchrGrade').value;
-  const subject=document.getElementById('tchrSubject').value;
+  const subjects=[...document.querySelectorAll('.tchr-subject-cb:checked')].map(cb=>cb.value);
   if(id){
     const t=state.teachers.find(x=>x.id===id);
-    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrId=vrId;t.grade=grade;t.subject=subject;}
+    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrId=vrId;t.grade=grade;t.subjects=subjects;}
   } else {
-    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrId,grade,subject});
+    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrId,grade,subjects});
     state.teachers.sort((a,b)=>a.name.localeCompare(b.name));
   }
   saveState();closeModal('tchrModal');renderTeachers();
@@ -2193,8 +2235,9 @@ function renderGradeSubjectList(allEntries,yearFilter){
     (e.day.absences||[]).forEach(a=>{
       if(!a.teacher)return;
       const t=state.teachers.find(x=>x.name===a.teacher);
-      const key=insightsAbsView==='grade'?(t?.grade||'Unknown Grade'):(t?.subject||'Unknown Subject');
-      counts[key]=(counts[key]||0)+1;
+      const subjectList=t?.subjects&&t.subjects.length?t.subjects:(t?.subject?[t.subject]:['Unknown Subject']);
+      const keys=insightsAbsView==='grade'?[t?.grade||'Unknown Grade']:subjectList;
+      keys.forEach(key=>{ counts[key]=(counts[key]||0)+1; });
     });
   });
   const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
@@ -2268,20 +2311,8 @@ function renderInsights(){
     datasets:[{label:'Absences',data:[dowC[1],dowC[2],dowC[3],dowC[4]],backgroundColor:['#dbeafe','#bfdbfe','#93c5fd','#60a5fa'],borderRadius:6}]
   },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
 
-  // Most absent teachers
-  const tchrMap={};
-  daysWithAbs.forEach(e=>(e.day.absences||[]).forEach(a=>{if(a.teacher)tchrMap[a.teacher]=(tchrMap[a.teacher]||0)+1;}));
-  const top15=Object.entries(tchrMap).sort((a,b)=>b[1]-a[1]).slice(0,15);
-  const maxT=top15[0]?.[1]||1;
-  // Grade/Subject breakdown
+  // Grade/Subject breakdown (replaces old "most absent teachers" block)
   renderGradeSubjectList(allEntries);
-
-  document.getElementById('insightsTchrList').innerHTML=top15.map(([name,n])=>`
-    <div class="wl-row">
-      <div class="wl-name" style="width:160px" title="${esc(name)}">${esc(name)}</div>
-      <div class="wl-bar-wrap"><div class="wl-bar" style="width:${Math.round(n/maxT*100)}%;background:#8b5cf6"></div></div>
-      <div class="wl-count" style="color:#5b21b6">${n}</div>
-    </div>`).join('')||'<p style="color:#94a3b8;padding:16px">No data yet</p>';
 
   // High-need weeks
   const weekMap={};
