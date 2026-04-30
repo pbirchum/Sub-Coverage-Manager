@@ -237,15 +237,9 @@ tr:hover td{background:#f8fafc}
     </select>
     <select id="filtMonth" onchange="renderSummary()" style="width:160px;padding:7px 10px;display:none"></select>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-    <div class="card">
-      <div class="card-header"><div class="card-title">👥 Sub Workload</div><span id="subWlNote" style="font-size:.75rem;color:#94a3b8"></span></div>
-      <div id="subWlList" style="max-height:260px;overflow-y:auto;padding-right:4px"></div>
-    </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title">📋 Teacher Absences</div></div>
-      <div class="tbl-scroll" style="max-height:260px;overflow-y:auto"><table><thead><tr><th>Teacher</th><th>Days Out</th><th>Chart</th></tr></thead><tbody id="tchrAbsBody"></tbody></table></div>
-    </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header"><div class="card-title">👥 Sub Workload</div><span id="subWlNote" style="font-size:.75rem;color:#94a3b8"></span></div>
+    <div id="subWlList" style="max-height:260px;overflow-y:auto;padding-right:4px"></div>
   </div>
   <div class="card">
     <div class="card-header"><div class="card-title">📅 Absence Calendar Heatmap</div>
@@ -428,9 +422,10 @@ tr:hover td{background:#f8fafc}
         <label>🔗 Teams Link</label>
         <input type="text" id="tchrTeamsIn" placeholder="https://teams.microsoft.com/…">
       </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>🥽 VR Session ID</label>
-        <input type="text" id="tchrVrIn" placeholder="VR session code / ID">
+      <div class="form-group" style="margin-bottom:0;grid-column:1/-1">
+        <label>🥽 VR Codes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#94a3b8;font-size:.78rem"> — add one entry per class/session</span></label>
+        <div id="vrCodesContainer" style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addVrCodeRow()" style="margin-top:8px">+ Add VR Code</button>
       </div>
       <div class="form-group" style="margin-bottom:0">
         <label>🎓 Grade Level</label>
@@ -447,6 +442,9 @@ tr:hover td{background:#f8fafc}
       <div class="form-group" style="margin-bottom:0;grid-column:1/-1">
         <label>📚 Subjects Taught (select all that apply)</label>
         <div id="tchrSubjectGrid" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;padding:10px;background:#f8fafc;border:1.5px solid #CBD5E1;border-radius:7px;max-height:140px;overflow-y:auto">
+          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <input type="checkbox" class="tchr-subject-cb" value="Elementary - Multi-Subject" style="accent-color:#1e40af;width:14px;height:14px"> Elementary - Multi-Subject
+          </label>
           <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
             <input type="checkbox" class="tchr-subject-cb" value="ELA / Reading" style="accent-color:#1e40af;width:14px;height:14px"> ELA / Reading
           </label>
@@ -494,6 +492,165 @@ tr:hover td{background:#f8fafc}
     </div>
     <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">Weekly Schedule (check periods this teacher teaches)</label>
     <div class="sched-grid" id="schedGrid"></div>
+    <div style="margin-top:16px;margin-bottom:14px">
+      <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">📚 Period → Subject (optional — helps subs know what they're covering)</label>
+      <div style="background:#f8fafc;border:1.5px solid #CBD5E1;border-radius:7px;padding:10px 14px">
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
+          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">HR</div>
+          <div style="font-size:.72rem;color:#94a3b8;width:90px">8:00–8:25</div>
+          <select id="ps_HR" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
+            <option value="">— Subject for this period —</option>
+          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
+          <option value="ELA / Reading">ELA / Reading</option>
+          <option value="Math">Math</option>
+          <option value="Science">Science</option>
+          <option value="Social Studies">Social Studies</option>
+          <option value="History">History</option>
+          <option value="PE / Health">PE / Health</option>
+          <option value="Art">Art</option>
+          <option value="Music">Music</option>
+          <option value="Technology">Technology</option>
+          <option value="Special Education">Special Education</option>
+          <option value="ESL / ELL">ESL / ELL</option>
+          <option value="Counseling">Counseling</option>
+          <option value="Administration">Administration</option>
+          <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
+          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P1</div>
+          <div style="font-size:.72rem;color:#94a3b8;width:90px">8:25–9:15</div>
+          <select id="ps_P1" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
+            <option value="">— Subject for this period —</option>
+          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
+          <option value="ELA / Reading">ELA / Reading</option>
+          <option value="Math">Math</option>
+          <option value="Science">Science</option>
+          <option value="Social Studies">Social Studies</option>
+          <option value="History">History</option>
+          <option value="PE / Health">PE / Health</option>
+          <option value="Art">Art</option>
+          <option value="Music">Music</option>
+          <option value="Technology">Technology</option>
+          <option value="Special Education">Special Education</option>
+          <option value="ESL / ELL">ESL / ELL</option>
+          <option value="Counseling">Counseling</option>
+          <option value="Administration">Administration</option>
+          <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
+          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P2</div>
+          <div style="font-size:.72rem;color:#94a3b8;width:90px">9:25–10:15</div>
+          <select id="ps_P2" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
+            <option value="">— Subject for this period —</option>
+          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
+          <option value="ELA / Reading">ELA / Reading</option>
+          <option value="Math">Math</option>
+          <option value="Science">Science</option>
+          <option value="Social Studies">Social Studies</option>
+          <option value="History">History</option>
+          <option value="PE / Health">PE / Health</option>
+          <option value="Art">Art</option>
+          <option value="Music">Music</option>
+          <option value="Technology">Technology</option>
+          <option value="Special Education">Special Education</option>
+          <option value="ESL / ELL">ESL / ELL</option>
+          <option value="Counseling">Counseling</option>
+          <option value="Administration">Administration</option>
+          <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
+          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P3</div>
+          <div style="font-size:.72rem;color:#94a3b8;width:90px">10:25–11:15</div>
+          <select id="ps_P3" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
+            <option value="">— Subject for this period —</option>
+          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
+          <option value="ELA / Reading">ELA / Reading</option>
+          <option value="Math">Math</option>
+          <option value="Science">Science</option>
+          <option value="Social Studies">Social Studies</option>
+          <option value="History">History</option>
+          <option value="PE / Health">PE / Health</option>
+          <option value="Art">Art</option>
+          <option value="Music">Music</option>
+          <option value="Technology">Technology</option>
+          <option value="Special Education">Special Education</option>
+          <option value="ESL / ELL">ESL / ELL</option>
+          <option value="Counseling">Counseling</option>
+          <option value="Administration">Administration</option>
+          <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
+          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P4</div>
+          <div style="font-size:.72rem;color:#94a3b8;width:90px">11:25–12:15</div>
+          <select id="ps_P4" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
+            <option value="">— Subject for this period —</option>
+          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
+          <option value="ELA / Reading">ELA / Reading</option>
+          <option value="Math">Math</option>
+          <option value="Science">Science</option>
+          <option value="Social Studies">Social Studies</option>
+          <option value="History">History</option>
+          <option value="PE / Health">PE / Health</option>
+          <option value="Art">Art</option>
+          <option value="Music">Music</option>
+          <option value="Technology">Technology</option>
+          <option value="Special Education">Special Education</option>
+          <option value="ESL / ELL">ESL / ELL</option>
+          <option value="Counseling">Counseling</option>
+          <option value="Administration">Administration</option>
+          <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
+          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P5</div>
+          <div style="font-size:.72rem;color:#94a3b8;width:90px">1:00–1:50</div>
+          <select id="ps_P5" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
+            <option value="">— Subject for this period —</option>
+          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
+          <option value="ELA / Reading">ELA / Reading</option>
+          <option value="Math">Math</option>
+          <option value="Science">Science</option>
+          <option value="Social Studies">Social Studies</option>
+          <option value="History">History</option>
+          <option value="PE / Health">PE / Health</option>
+          <option value="Art">Art</option>
+          <option value="Music">Music</option>
+          <option value="Technology">Technology</option>
+          <option value="Special Education">Special Education</option>
+          <option value="ESL / ELL">ESL / ELL</option>
+          <option value="Counseling">Counseling</option>
+          <option value="Administration">Administration</option>
+          <option value="Other">Other</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
+          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P6</div>
+          <div style="font-size:.72rem;color:#94a3b8;width:90px">2:00–2:50</div>
+          <select id="ps_P6" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
+            <option value="">— Subject for this period —</option>
+          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
+          <option value="ELA / Reading">ELA / Reading</option>
+          <option value="Math">Math</option>
+          <option value="Science">Science</option>
+          <option value="Social Studies">Social Studies</option>
+          <option value="History">History</option>
+          <option value="PE / Health">PE / Health</option>
+          <option value="Art">Art</option>
+          <option value="Music">Music</option>
+          <option value="Technology">Technology</option>
+          <option value="Special Education">Special Education</option>
+          <option value="ESL / ELL">ESL / ELL</option>
+          <option value="Counseling">Counseling</option>
+          <option value="Administration">Administration</option>
+          <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
     <input type="hidden" id="tchrModalId">
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:14px;border-top:1px solid #f1f5f9">
       <button class="btn btn-outline" onclick="closeModal('tchrModal')">Cancel</button>
@@ -998,7 +1155,7 @@ function normalizeState(s){
   s.teachers=toArr(s.teachers).map(t=>({
     id:t.id||'t'+Math.random(),name:t.name||'',
     teamsLink:t.teamsLink||'',vrId:t.vrId||'',
-    grade:t.grade||'',subjects:toArr(t.subjects,t.subject?[t.subject]:[]),
+    grade:t.grade||'',subjects:toArr(t.subjects,t.subject?[t.subject]:[]),periodSubjects:t.periodSubjects||{},vrCodes:toArr(t.vrCodes,t.vrId?[{desc:'',code:t.vrId}]:[]),
     schedule:{
       Mon:toArr(t.schedule?.Mon),Tue:toArr(t.schedule?.Tue),
       Wed:toArr(t.schedule?.Wed),Thu:toArr(t.schedule?.Thu)
@@ -1538,17 +1695,27 @@ function renderAbsCard(ds,abs,idx){
 
   // Build Teams/VR info strip
   let infoStrip='';
-  if(teacher&&(teacher.teamsLink||teacher.vrId)){
-    infoStrip=`<div class="tchr-info-strip">`;
+  const vrList=teacher?.vrCodes&&teacher.vrCodes.length?teacher.vrCodes:(teacher?.vrId?[{desc:'',code:teacher.vrId}]:[]);
+  const hasPeriodSubjects=teacher?.periodSubjects&&Object.keys(teacher.periodSubjects).length>0;
+  if(teacher&&(teacher.teamsLink||vrList.length>0||hasPeriodSubjects)){
+    infoStrip=`<div class="tchr-info-strip" style="flex-direction:column;gap:6px;align-items:flex-start">`;
     if(teacher.teamsLink){
-      infoStrip+=`<div class="tchr-info-item">🔗 <a href="${esc(teacher.teamsLink)}" target="_blank" rel="noopener">Teams Link</a></div>`;
+      infoStrip+=`<div class="tchr-info-item">🔗 <a href="${esc(teacher.teamsLink)}" target="_blank" rel="noopener">Teams Meeting Link</a></div>`;
     }
-    if(teacher.vrId){
-      infoStrip+=`<div class="tchr-info-item">🥽 VR Session ID: <strong>${esc(teacher.vrId)}</strong></div>`;
+    if(vrList.length>0){
+      infoStrip+=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">🥽 VR Codes: `;
+      vrList.forEach(({desc,code})=>{
+        infoStrip+=`<span style="background:#ede9fe;color:#5b21b6;padding:2px 8px;border-radius:5px;font-size:.8rem"><strong>${esc(code)}</strong>${desc?' — '+esc(desc):''}</span>`;
+      });
+      infoStrip+=`</div>`;
+    }
+    if(hasPeriodSubjects){
+      const psItems=Object.entries(teacher.periodSubjects).map(([pid,subj])=>`<span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:5px;font-size:.75rem"><strong>${pid}</strong>: ${esc(subj)}</span>`).join('');
+      infoStrip+=`<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">📚 ${psItems}</div>`;
     }
     infoStrip+=`</div>`;
   } else if(teacher&&abs.teacher){
-    infoStrip=`<div class="tchr-info-strip" style="color:#94a3b8;font-style:italic">No Teams Link or VR ID set — <button class="btn btn-ghost btn-sm" style="padding:0;font-size:.75rem;font-style:normal" onclick="openTeacherModal('${esc(teacher.id)}')">Add in teacher profile →</button></div>`;
+    infoStrip=`<div class="tchr-info-strip" style="color:#94a3b8;font-style:italic">No Teams Link or VR codes set — <button class="btn btn-ghost btn-sm" style="padding:0;font-size:.75rem;font-style:normal" onclick="openTeacherModal('${esc(teacher.id)}')">Add in teacher profile →</button></div>`;
   }
 
   let html=`<div class="abs-card">
@@ -1662,7 +1829,8 @@ function copyRoster(ds){
     const teacher=state.teachers.find(t=>t.name===abs.teacher);
     txt+=`\n🔹 ${abs.teacher}\n`;
     if(teacher?.teamsLink) txt+=`   🔗 Teams: ${teacher.teamsLink}\n`;
-    if(teacher?.vrId)      txt+=`   🥽 VR Session ID: ${teacher.vrId}\n`;
+    const vrCopyList=teacher?.vrCodes&&teacher.vrCodes.length?teacher.vrCodes:(teacher?.vrId?[{desc:'',code:teacher.vrId}]:[]);
+    vrCopyList.forEach(({desc,code})=>{if(code)txt+=`   🥽 VR: ${code}${desc?' ('+desc+')':''}\n`;});
     // Only show periods that have coverage OR were actively used
     const coveredPeriods=PERIOD_DEFS.filter(p=>abs.coverage[p.id]);
     const uncoveredPeriods=PERIOD_DEFS.filter(p=>!abs.coverage[p.id]&&abs.coverage[p.id]!=='__NCN__');
@@ -1740,14 +1908,7 @@ function renderSummary(){
   }
 
   // Teacher absences
-  const tchrCounts=state.teachers.map(t=>({name:t.name,n:getTeacherDays(t.name,sd,ed)}))
-    .sort((a,b)=>b.n-a.n);
-  const maxTn=Math.max(...tchrCounts.map(x=>x.n),1);
-  document.getElementById('tchrAbsBody').innerHTML=tchrCounts.map(t=>`<tr>
-    <td>${esc(t.name)}</td>
-    <td><strong>${t.n>0?t.n:'<span style="color:#94a3b8">0</span>'}</strong></td>
-    <td>${t.n>0?`<div style="background:#f1f5f9;border-radius:99px;height:8px;width:120px;overflow:hidden"><div style="background:#8b5cf6;height:100%;border-radius:99px;width:${Math.round(t.n/maxTn*100)}%"></div></div>`:`<span style="color:#22c55e;font-size:.75rem">✓ Perfect attendance</span>`}</td>
-  </tr>`).join('')||`<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:20px">No teachers found</td></tr>`;
+
 
   // Calendar heatmap
   const calYear=document.getElementById('filtType')?.value==='year'?document.getElementById('filtMonth')?.value:'current';
@@ -1842,11 +2003,10 @@ function renderTeachers(){
     return;
   }
   document.getElementById('tchrList').innerHTML=`<table>
-    <thead><tr><th>Teacher Name</th><th>Grade</th><th>Subject</th><th>Schedule</th><th>Teams / VR</th><th>Days Absent</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Teacher Name</th><th>Grade</th><th>Subjects</th><th>Schedule</th><th>Teams / VR</th><th>Actions</th></tr></thead>
     <tbody>${filtered.map(t=>{
       const hasSchedule=Object.values(t.schedule||{}).some(p=>p?.length>0);
-      const days=getTeacherDays(t.name);
-      const hasLinks=t.teamsLink||t.vrId;
+      const hasLinks=t.teamsLink||t.vrId||t.vrCodes?.length;
       return `<tr>
         <td><strong>${esc(t.name)}</strong></td>
         <td style="font-size:.8rem">${t.grade?esc(t.grade):'<span style="color:#94a3b8">—</span>'}</td>
@@ -1854,8 +2014,7 @@ function renderTeachers(){
           (t.subjects||[t.subject].filter(Boolean)).map(s=>`<span style="display:inline-block;background:#eff6ff;color:#1e40af;border-radius:4px;padding:1px 6px;font-size:.7rem;margin:1px;white-space:nowrap">${esc(s)}</span>`).join('')
           :'<span style="color:#94a3b8">—</span>'}</td>
         <td>${hasSchedule?`<span class="badge badge-green">✓ Set</span>`:`<span class="badge badge-gray">Not set</span>`}</td>
-        <td>${t.teamsLink?`<a href="${esc(t.teamsLink)}" target="_blank" style="color:#1e40af;font-size:.8rem">🔗 Teams</a> `:''}${t.vrId?`<span style="font-size:.8rem">🥽 ${esc(t.vrId)}</span>`:''}${!hasLinks?`<span style="color:#94a3b8;font-size:.8rem">—</span>`:''}</td>
-        <td>${days>0?`<span class="badge badge-red">${days} day${days!==1?'s':''}</span>`:`<span style="color:#94a3b8">0</span>`}</td>
+        <td style="font-size:.8rem">${t.teamsLink?`<a href="${esc(t.teamsLink)}" target="_blank" style="color:#1e40af">🔗 Teams</a> `:''}${(t.vrCodes&&t.vrCodes.length||(t.vrId&&!t.vrCodes))?`<span style="color:#5b21b6">🥽 ${(t.vrCodes||[{desc:'',code:t.vrId}]).length} VR code${(t.vrCodes||[]).length!==1?'s':''}</span>`:''}${!hasLinks&&!(t.vrCodes?.length)?`<span style="color:#94a3b8">—</span>`:''}</td>
         <td><button class="btn btn-outline btn-sm" onclick="openTeacherModal('${esc(t.id)}')">✏ Edit</button>
             <button class="btn btn-ghost btn-sm" onclick="deleteTeacher('${esc(t.id)}')">🗑</button></td>
       </tr>`;
@@ -1863,11 +2022,34 @@ function renderTeachers(){
   </table>`;
 }
 
+
+function addVrCodeRow(desc,code){
+  const container=document.getElementById('vrCodesContainer');
+  if(!container)return;
+  const row=document.createElement('div');
+  row.className='vr-code-row';
+  row.style.cssText='display:flex;gap:8px;align-items:center';
+  row.innerHTML=`<input class="vr-desc" type="text" placeholder="Description (e.g. 6th Grade Science)" value="${esc(desc||'')}" style="flex:2;padding:7px 10px;border:1.5px solid #CBD5E1;border-radius:7px;font-size:.85rem">
+    <input class="vr-code" type="text" placeholder="VR code / ID" value="${esc(code||'')}" style="flex:1;padding:7px 10px;border:1.5px solid #CBD5E1;border-radius:7px;font-size:.85rem;font-family:monospace">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()" style="flex-shrink:0">✕</button>`;
+  container.appendChild(row);
+}
 function openTeacherModal(id){
   const t=id?state.teachers.find(x=>x.id===id):null;
   document.getElementById('tchrModalTitle').textContent=t?'Edit Teacher':'Add Teacher';
   document.getElementById('tchrNameIn').value=t?.name||'';
   document.getElementById('tchrTeamsIn').value=t?.teamsLink||'';
+  // Multi VR codes
+  const container=document.getElementById('vrCodesContainer');
+  container.innerHTML='';
+  const vrList=t?.vrCodes&&t.vrCodes.length?t.vrCodes:(t?.vrId?[{desc:'',code:t.vrId}]:[]);
+  if(vrList.length===0)vrList.push({desc:'',code:''});
+  vrList.forEach(entry=>addVrCodeRow(entry.desc,entry.code));
+  // Period subjects
+  ['HR','P1','P2','P3','P4','P5','P6'].forEach(pid=>{
+    const sel=document.getElementById('ps_'+pid);
+    if(sel)sel.value=t?.periodSubjects?.[pid]||'';
+  });
   document.getElementById('tchrVrIn').value=t?.vrId||'';
   document.getElementById('tchrGrade').value=t?.grade||'';
   // Multi-subject: tick the right checkboxes
@@ -1902,14 +2084,22 @@ function saveTeacher(){
     schedule[day]=PERIOD_DEFS.filter(p=>document.getElementById(`sched_${p.id}_${day}`)?.checked).map(p=>p.id);
   }
   const teamsLink=document.getElementById('tchrTeamsIn').value.trim();
-  const vrId=document.getElementById('tchrVrIn').value.trim();
+  const vrCodes=[...document.querySelectorAll('.vr-code-row')].map(row=>({
+    desc:row.querySelector('.vr-desc').value.trim(),
+    code:row.querySelector('.vr-code').value.trim()
+  })).filter(e=>e.code);
   const grade=document.getElementById('tchrGrade').value;
   const subjects=[...document.querySelectorAll('.tchr-subject-cb:checked')].map(cb=>cb.value);
+  const periodSubjects={};
+  ['HR','P1','P2','P3','P4','P5','P6'].forEach(pid=>{
+    const v=document.getElementById('ps_'+pid)?.value||'';
+    if(v)periodSubjects[pid]=v;
+  });
   if(id){
     const t=state.teachers.find(x=>x.id===id);
-    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrId=vrId;t.grade=grade;t.subjects=subjects;}
+    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrCodes=vrCodes;t.grade=grade;t.subjects=subjects;t.periodSubjects=periodSubjects;}
   } else {
-    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrId,grade,subjects});
+    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrCodes,grade,subjects,periodSubjects});
     state.teachers.sort((a,b)=>a.name.localeCompare(b.name));
   }
   saveState();closeModal('tchrModal');renderTeachers();
@@ -2099,7 +2289,8 @@ function printRoster(){
       const teacher=state.teachers.find(t=>t.name===abs.teacher);
       html+=`<h2>${abs.teacher||'Unknown Teacher'}</h2>`;
       if(teacher?.teamsLink)html+=`<p>🔗 Teams: <a href="${teacher.teamsLink}">${teacher.teamsLink}</a></p>`;
-      if(teacher?.vrId)html+=`<p>🥽 VR Session ID: <strong>${teacher.vrId}</strong></p>`;
+      const vrPrintList=teacher?.vrCodes&&teacher.vrCodes.length?teacher.vrCodes:(teacher?.vrId?[{desc:'',code:teacher.vrId}]:[]);
+      vrPrintList.forEach(({desc,code})=>{if(code)html+=`<p>🥽 VR: <strong>${code}</strong>${desc?' — '+desc:''}</p>`;});
       html+=`<table><tr>${PERIOD_DEFS.map(p=>`<th>${p.id}<br><small>${p.time}</small>`).join('')}</tr>
       <tr>${PERIOD_DEFS.map(p=>{const v=abs.coverage[p.id];return`<td class="${v?'covered':'empty'}">${v||'—'}</td>`;}).join('')}</tr></table>`;
     });
