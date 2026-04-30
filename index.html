@@ -324,21 +324,9 @@ tr:hover td{background:#f8fafc}
       <canvas id="dowChart" height="220"></canvas>
     </div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">📊 Absences by Grade &amp; Subject</div>
-        <div style="display:flex;gap:6px">
-          <button id="btnGradeView" class="btn btn-primary btn-sm" onclick="setInsightsAbsView('grade')">By Grade</button>
-          <button id="btnSubjectView" class="btn btn-outline btn-sm" onclick="setInsightsAbsView('subject')">By Subject</button>
-        </div>
-      </div>
-      <div id="gradeSubjectList" style="max-height:300px;overflow-y:auto"></div>
-    </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title">🗓 High-Need Weeks (projected)</div></div>
-      <div id="insightsWeekList" style="max-height:340px;overflow-y:auto"></div>
-    </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header"><div class="card-title">🗓 High-Need Weeks (projected)</div></div>
+    <div id="insightsWeekList" style="max-height:300px;overflow-y:auto"></div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
     <div class="card">
@@ -400,8 +388,9 @@ tr:hover td{background:#f8fafc}
       <div class="card">
         <div class="card-header">
           <div class="card-title">📅 Schedule Templates</div>
+          <button class="btn btn-outline btn-sm" onclick="openTmplEditor()">+ Add Template</button>
         </div>
-        <p style="font-size:.78rem;color:#64748b;margin-bottom:10px">Grade-specific schedule layouts. Assign a template in a teacher's profile to use their schedule instead of the default HR/P1–P6.</p>
+        <p style="font-size:.78rem;color:#64748b;margin-bottom:10px">Grade-specific schedule layouts. Assign a template in a teacher's profile to replace the default HR/P1–P6 blocks.</p>
         <div id="templatesSettingsList"></div>
       </div>
       <div class="card">
@@ -448,167 +437,23 @@ tr:hover td{background:#f8fafc}
           <option value="">Default (Homeroom + Periods 1–6)</option>
         </select>
         <p style="font-size:.75rem;color:#64748b;margin-top:4px">Use for K–2nd grade teachers who follow a different daily schedule</p>
-      </div>
-    <div style="margin-top:16px;margin-bottom:14px">
-      <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">📚 Period → Subject (optional — helps subs know what they're covering)</label>
-      <div style="background:#f8fafc;border:1.5px solid #CBD5E1;border-radius:7px;padding:10px 14px">
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
-          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">HR</div>
-          <div style="font-size:.72rem;color:#94a3b8;width:90px">8:00–8:25</div>
-          <select id="ps_HR" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
-            <option value="">— Subject for this period —</option>
-          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
-          <option value="ELA / Reading">ELA / Reading</option>
-          <option value="Math">Math</option>
-          <option value="Science">Science</option>
-          <option value="Social Studies">Social Studies</option>
-          <option value="History">History</option>
-          <option value="PE / Health">PE / Health</option>
-          <option value="Art">Art</option>
-          <option value="Music">Music</option>
-          <option value="Technology">Technology</option>
-          <option value="Special Education">Special Education</option>
-          <option value="ESL / ELL">ESL / ELL</option>
-          <option value="Counseling">Counseling</option>
-          <option value="Administration">Administration</option>
-          <option value="Other">Other</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
-          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P1</div>
-          <div style="font-size:.72rem;color:#94a3b8;width:90px">8:25–9:15</div>
-          <select id="ps_P1" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
-            <option value="">— Subject for this period —</option>
-          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
-          <option value="ELA / Reading">ELA / Reading</option>
-          <option value="Math">Math</option>
-          <option value="Science">Science</option>
-          <option value="Social Studies">Social Studies</option>
-          <option value="History">History</option>
-          <option value="PE / Health">PE / Health</option>
-          <option value="Art">Art</option>
-          <option value="Music">Music</option>
-          <option value="Technology">Technology</option>
-          <option value="Special Education">Special Education</option>
-          <option value="ESL / ELL">ESL / ELL</option>
-          <option value="Counseling">Counseling</option>
-          <option value="Administration">Administration</option>
-          <option value="Other">Other</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
-          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P2</div>
-          <div style="font-size:.72rem;color:#94a3b8;width:90px">9:25–10:15</div>
-          <select id="ps_P2" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
-            <option value="">— Subject for this period —</option>
-          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
-          <option value="ELA / Reading">ELA / Reading</option>
-          <option value="Math">Math</option>
-          <option value="Science">Science</option>
-          <option value="Social Studies">Social Studies</option>
-          <option value="History">History</option>
-          <option value="PE / Health">PE / Health</option>
-          <option value="Art">Art</option>
-          <option value="Music">Music</option>
-          <option value="Technology">Technology</option>
-          <option value="Special Education">Special Education</option>
-          <option value="ESL / ELL">ESL / ELL</option>
-          <option value="Counseling">Counseling</option>
-          <option value="Administration">Administration</option>
-          <option value="Other">Other</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
-          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P3</div>
-          <div style="font-size:.72rem;color:#94a3b8;width:90px">10:25–11:15</div>
-          <select id="ps_P3" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
-            <option value="">— Subject for this period —</option>
-          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
-          <option value="ELA / Reading">ELA / Reading</option>
-          <option value="Math">Math</option>
-          <option value="Science">Science</option>
-          <option value="Social Studies">Social Studies</option>
-          <option value="History">History</option>
-          <option value="PE / Health">PE / Health</option>
-          <option value="Art">Art</option>
-          <option value="Music">Music</option>
-          <option value="Technology">Technology</option>
-          <option value="Special Education">Special Education</option>
-          <option value="ESL / ELL">ESL / ELL</option>
-          <option value="Counseling">Counseling</option>
-          <option value="Administration">Administration</option>
-          <option value="Other">Other</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
-          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P4</div>
-          <div style="font-size:.72rem;color:#94a3b8;width:90px">11:25–12:15</div>
-          <select id="ps_P4" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
-            <option value="">— Subject for this period —</option>
-          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
-          <option value="ELA / Reading">ELA / Reading</option>
-          <option value="Math">Math</option>
-          <option value="Science">Science</option>
-          <option value="Social Studies">Social Studies</option>
-          <option value="History">History</option>
-          <option value="PE / Health">PE / Health</option>
-          <option value="Art">Art</option>
-          <option value="Music">Music</option>
-          <option value="Technology">Technology</option>
-          <option value="Special Education">Special Education</option>
-          <option value="ESL / ELL">ESL / ELL</option>
-          <option value="Counseling">Counseling</option>
-          <option value="Administration">Administration</option>
-          <option value="Other">Other</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
-          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P5</div>
-          <div style="font-size:.72rem;color:#94a3b8;width:90px">1:00–1:50</div>
-          <select id="ps_P5" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
-            <option value="">— Subject for this period —</option>
-          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
-          <option value="ELA / Reading">ELA / Reading</option>
-          <option value="Math">Math</option>
-          <option value="Science">Science</option>
-          <option value="Social Studies">Social Studies</option>
-          <option value="History">History</option>
-          <option value="PE / Health">PE / Health</option>
-          <option value="Art">Art</option>
-          <option value="Music">Music</option>
-          <option value="Technology">Technology</option>
-          <option value="Special Education">Special Education</option>
-          <option value="ESL / ELL">ESL / ELL</option>
-          <option value="Counseling">Counseling</option>
-          <option value="Administration">Administration</option>
-          <option value="Other">Other</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc">
-          <div style="width:30px;font-weight:700;font-size:.8rem;color:#475569">P6</div>
-          <div style="font-size:.72rem;color:#94a3b8;width:90px">2:00–2:50</div>
-          <select id="ps_P6" style="flex:1;padding:5px 8px;font-size:.82rem;border:1px solid #e2e8f0;border-radius:6px;background:white">
-            <option value="">— Subject for this period —</option>
-          <option value="Elementary - Multi-Subject">Elementary - Multi-Subject</option>
-          <option value="ELA / Reading">ELA / Reading</option>
-          <option value="Math">Math</option>
-          <option value="Science">Science</option>
-          <option value="Social Studies">Social Studies</option>
-          <option value="History">History</option>
-          <option value="PE / Health">PE / Health</option>
-          <option value="Art">Art</option>
-          <option value="Music">Music</option>
-          <option value="Technology">Technology</option>
-          <option value="Special Education">Special Education</option>
-          <option value="ESL / ELL">ESL / ELL</option>
-          <option value="Counseling">Counseling</option>
-          <option value="Administration">Administration</option>
-          <option value="Other">Other</option>
-          </select>
-        </div>
-      </div>
+  
     </div>
-    <div id="periodDetailsGrid" style="margin-top:16px;margin-bottom:14px"></div>
+    </div>
+    <!-- Schedule grid: shown for default template, hidden for grade-band templates -->
+    <div id="schedGridWrapper" style="margin-top:16px">
+      <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">
+        ✅ Which periods does this teacher need coverage? <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#94a3b8">Check each period they teach Mon–Thu</span>
+      </label>
+      <div class="sched-grid" id="schedGrid"></div>
+    </div>
+    <!-- Template periods preview: shown for grade-band templates -->
+    <div id="tmplPeriodsPreview" style="display:none;margin-top:16px">
+      <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">
+        Coverage Blocks (defined by template)
+      </label>
+      <div id="tmplPeriodsList" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    </div>
         <input type="hidden" id="tchrModalId">
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:14px;border-top:1px solid #f1f5f9">
       <button class="btn btn-outline" onclick="closeModal('tchrModal')">Cancel</button>
@@ -859,6 +704,49 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- TEMPLATE EDITOR MODAL -->
+<div class="overlay" id="tmplEditorModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <div class="modal-title" id="tmplEditorTitle">Add Schedule Template</div>
+      <button class="modal-close" onclick="closeModal('tmplEditorModal')">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 140px;gap:12px;margin-bottom:16px">
+      <div class="form-group" style="margin:0">
+        <label>Template Name</label>
+        <input type="text" id="tmplName" placeholder="e.g. 3rd Grade">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Grade Label <span style="font-weight:400;color:#94a3b8">(short badge)</span></label>
+        <input type="text" id="tmplGradeLabel" placeholder="e.g. 3rd">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Color</label>
+        <select id="tmplColor">
+          <option value="#6366f1">Purple</option>
+          <option value="#10b981">Green</option>
+          <option value="#f59e0b">Amber</option>
+          <option value="#ef4444">Red</option>
+          <option value="#3b82f6">Blue</option>
+          <option value="#ec4899">Pink</option>
+          <option value="#14b8a6">Teal</option>
+          <option value="#f97316">Orange</option>
+        </select>
+      </div>
+    </div>
+    <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">
+      Coverage Blocks <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#94a3b8">— only include periods a sub would need to cover</span>
+    </label>
+    <div id="tmplPeriodRows" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+    <button type="button" class="btn btn-outline btn-sm" onclick="addTmplPeriodRow()">+ Add Block</button>
+    <input type="hidden" id="tmplEditingId">
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:14px;border-top:1px solid #f1f5f9">
+      <button class="btn btn-outline" onclick="closeModal('tmplEditorModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTemplateEdit()">Save Template</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -881,26 +769,20 @@ const DEFAULT_SCHEDULE_TEMPLATES = [
     id:'kg_1st', name:'Kindergarten & 1st Grade', gradeLabel:'K–1st',
     color:'#6366f1',
     periods:[
-      {id:'PREP', label:'Daily Prep',  time:'7:00–8:00'},
-      {id:'SG',   label:'Small Group', time:'8:00–9:00'},
       {id:'ELA',  label:'ELA / Circle',time:'9:00–10:00'},
       {id:'MATH', label:'Math',        time:'10:10–10:50'},
       {id:'SPEC', label:'Specials',    time:'11:10–11:30',note:'M/T: Music · W/Th: Art'},
       {id:'CONT', label:'SS / Science',time:'11:30–12:00',note:'M/T: Social Studies · W/Th: Science'},
-      {id:'OFC',  label:'Office Hours',time:'12:00–12:30'},
     ]
   },
   {
     id:'2nd', name:'2nd Grade', gradeLabel:'2nd',
     color:'#10b981',
     periods:[
-      {id:'PREP', label:'Daily Prep',  time:'7:00–8:00'},
-      {id:'MTG',  label:'Morn. Meeting',time:'8:00–8:20'},
       {id:'ELA',  label:'ELA',         time:'8:20–9:20'},
       {id:'MATH', label:'Math',        time:'9:30–10:30'},
       {id:'SSCI', label:'SS / Science',time:'10:40–11:05',note:'M/W: Social Studies · T/Th: Science'},
       {id:'SPEC', label:'Art / Music', time:'11:15–11:40',note:'M/W: Art · T/Th: Music'},
-      {id:'PE',   label:'PE',          time:'11:40–12:00'},
     ]
   }
 ];
@@ -2118,6 +2000,26 @@ function buildPeriodDetailsGrid(teacher){
     </div>`;
 }
 
+
+function updateTeacherModalForTemplate(tmplId){
+  const isDefault=!tmplId;
+  // Show checkbox schedule grid for default; show period preview for templates
+  document.getElementById('schedGridWrapper').style.display=isDefault?'':'none';
+  document.getElementById('tmplPeriodsPreview').style.display=isDefault?'none':'';
+  if(!isDefault){
+    const tmpl=(state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES).find(x=>x.id===tmplId);
+    if(tmpl){
+      document.getElementById('tmplPeriodsList').innerHTML=tmpl.periods.map(p=>
+        `<div style="background:${tmpl.color}18;color:${tmpl.color};border:1px solid ${tmpl.color}44;border-radius:6px;padding:6px 10px;font-size:.82rem">
+          <strong>${p.id}</strong> ${p.label} <span style="opacity:.7">${p.time}</span>
+          ${p.note?`<div style="font-size:.7rem;opacity:.7;margin-top:2px">${p.note}</div>`:''}
+        </div>`).join('');
+      document.getElementById('tmplPeriodsPreview').querySelector('label').textContent=
+        `Coverage blocks — ${tmpl.name}`;
+    }
+  }
+}
+
 function openTeacherModal(id){
   const t=id?state.teachers.find(x=>x.id===id):null;
   document.getElementById('tchrModalTitle').textContent=t?'Edit Teacher':'Add Teacher';
@@ -2129,21 +2031,16 @@ function openTeacherModal(id){
   const vrList=t?.vrCodes&&t.vrCodes.length?t.vrCodes:(t?.vrId?[{desc:'',code:t.vrId}]:[]);
   if(vrList.length===0)vrList.push({desc:'',code:''});
   vrList.forEach(entry=>addVrCodeRow(entry.desc,entry.code));
-  // Populate schedule template dropdown
+  // Populate schedule template dropdown + wire show/hide
   const tmplSel=document.getElementById('tchrTemplate');
   if(tmplSel){
     const templates=state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES;
-    tmplSel.innerHTML='<option value="">Default (Homeroom + Periods 1–6)</option>'+
+    tmplSel.innerHTML='<option value="">Default (HR · P1–P6)</option>'+
       templates.map(tm=>`<option value="${esc(tm.id)}"${t?.scheduleTemplate===tm.id?' selected':''}>${esc(tm.name)}</option>`).join('');
-    tmplSel.onchange=()=>{
-      const fake={...t,scheduleTemplate:tmplSel.value};
-      buildPeriodDetailsGrid(fake);
-    };
+    tmplSel.onchange=()=>updateTeacherModalForTemplate(tmplSel.value);
   }
-  // Period details grid (grade + subject per period)
-  openModal('tchrModal'); // open first so elements exist
-  buildPeriodDetailsGrid(t);
-  // (modal already opened above — skip the second openModal call below)
+  openModal('tchrModal'); // open first so DOM elements exist
+  updateTeacherModalForTemplate(t?.scheduleTemplate||'');
   // Multi-subject: tick the right checkboxes
   const savedSubjects=t?.subjects||( t?.subject ? [t.subject] : [] );
   document.querySelectorAll('.tchr-subject-cb').forEach(cb=>{
@@ -2164,7 +2061,6 @@ function openTeacherModal(id){
     });
   }
   document.getElementById('schedGrid').innerHTML=html;
-  // (modal opened earlier in this function)
 }
 
 function saveTeacher(){
@@ -2181,20 +2077,11 @@ function saveTeacher(){
     code:row.querySelector('.vr-code').value.trim()
   })).filter(e=>e.code);
   const scheduleTemplate=document.getElementById('tchrTemplate')?.value||'';
-  // Read per-period grade and subject
-  const periodGrades={},periodSubjects={};
-  ['HR','P1','P2','P3','P4','P5','P6'].forEach(pid=>{
-    const g=document.getElementById('pg_'+pid)?.value||'';
-    const s=document.getElementById('ps_'+pid)?.value||'';
-    if(g)periodGrades[pid]=g;
-    if(s)periodSubjects[pid]=s;
-  });
-  const grade=''; const subjects=[];
   if(id){
     const t=state.teachers.find(x=>x.id===id);
-    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrCodes=vrCodes;t.scheduleTemplate=scheduleTemplate||null;t.periodGrades=periodGrades;t.periodSubjects=periodSubjects;}
+    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrCodes=vrCodes;t.scheduleTemplate=scheduleTemplate||null;}
   } else {
-    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrCodes,scheduleTemplate:scheduleTemplate||null,periodGrades,periodSubjects});
+    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrCodes,scheduleTemplate:scheduleTemplate||null});
     state.teachers.sort((a,b)=>a.name.localeCompare(b.name));
   }
   saveState();closeModal('tchrModal');renderTeachers();
@@ -2326,7 +2213,10 @@ function renderSettings(){
             <span style="font-weight:700;color:${tm.color}">${esc(tm.gradeLabel)}</span>
             <span style="font-size:.85rem;color:#475569;margin-left:8px">${esc(tm.name)}</span>
           </div>
-          <button class="btn btn-ghost btn-sm" style="color:#dc2626" onclick="if(confirm('Remove this template?')){state.settings.scheduleTemplates.splice(${i},1);saveState();renderSettings();}" title="Remove">🗑</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-outline btn-sm" onclick="openTmplEditor('${esc(tm.id)}')" title="Edit">✏ Edit</button>
+            <button class="btn btn-ghost btn-sm" style="color:#dc2626" onclick="if(confirm('Remove this template? Teachers using it will revert to default.')){state.settings.scheduleTemplates.splice(${i},1);saveState();renderSettings();toast('Template removed','ok');}" title="Remove">🗑</button>
+          </div>
         </div>
         <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px">
           ${tm.periods.map(p=>`<span style="background:${tm.color}22;color:${tm.color};border-radius:4px;padding:2px 7px;font-size:.72rem;font-weight:600">${p.id}: ${p.label} <span style="opacity:.7">${p.time}</span></span>`).join('')}
@@ -2551,49 +2441,6 @@ function archiveYear(){
 //  INSIGHTS TAB
 // ═══════════════════════════════════════════════════════════════
 let monthChartInst=null,dowChartInst=null,periodChartInst=null,yoyChartInst=null;
-let insightsAbsView='grade';
-function setInsightsAbsView(v){insightsAbsView=v;document.getElementById('btnGradeView').className='btn btn-'+(v==='grade'?'primary':'outline')+' btn-sm';document.getElementById('btnSubjectView').className='btn btn-'+(v==='subject'?'primary':'outline')+' btn-sm';renderGradeSubjectList();}
-
-function renderGradeSubjectList(allEntries,yearFilter){
-  // Called from renderInsights; allEntries is passed in
-  if(!allEntries){
-    // Re-gather if called standalone
-    const sel=document.getElementById('insightsYear');
-    const rosters=getAllRosterData(sel?.value||'all');
-    allEntries=rosters.flatMap(({label,roster})=>Object.entries(roster||{}).map(([date,day])=>({date,day,year:label})));
-  }
-  const daysWithAbs=allEntries.filter(e=>e.day.absences?.length>0);
-  // Count actual PERIODS covered, keyed by teacher's per-period grade or subject
-  const counts={};
-  allEntries.forEach(e=>{
-    (e.day.absences||[]).forEach(a=>{
-      if(!a.teacher)return;
-      const t=state.teachers.find(x=>x.name===a.teacher);
-      ['HR','P1','P2','P3','P4','P5','P6'].forEach(pid=>{
-        const cov=a.coverage?.[pid];
-        if(!cov||cov==='__NCN__')return; // skip uncovered or explicitly no-sub
-        let key;
-        if(insightsAbsView==='grade'){
-          key=t?.periodGrades?.[pid]||t?.grade||'Unknown Grade';
-        } else {
-          key=t?.periodSubjects?.[pid]||'Unknown Subject';
-        }
-        counts[key]=(counts[key]||0)+1;
-      });
-    });
-  });
-  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-  const maxN=sorted[0]?.[1]||1;
-  const el=document.getElementById('gradeSubjectList');
-  if(!el)return;
-  const unitLabel='periods covered';
-  el.innerHTML=sorted.map(([key,n])=>`
-    <div class="wl-row">
-      <div class="wl-name" style="width:160px;font-size:.82rem" title="${esc(key)}">${esc(key)}</div>
-      <div class="wl-bar-wrap"><div class="wl-bar" style="width:${Math.round(n/maxN*100)}%;background:${insightsAbsView==='grade'?'#6366f1':'#f59e0b'}"></div></div>
-      <div class="wl-count" title="${n} ${unitLabel}" style="color:${insightsAbsView==='grade'?'#4f46e5':'#92400e'}">${n}</div>
-    </div>`).join('')||'<p style="color:#94a3b8;padding:16px">No data — add grade/subject to teacher profiles to see this chart.</p>';
-}
 
 function getAllRosterData(yearFilter){
   const all=[];
@@ -2654,8 +2501,6 @@ function renderInsights(){
     datasets:[{label:'Absences',data:[dowC[1],dowC[2],dowC[3],dowC[4]],backgroundColor:['#dbeafe','#bfdbfe','#93c5fd','#60a5fa'],borderRadius:6}]
   },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
 
-  // Grade/Subject breakdown (replaces old "most absent teachers" block)
-  renderGradeSubjectList(allEntries);
 
   // High-need weeks: group by calendar position (month + week-of-month) for cross-year averaging
   // Display as "Week of [Month Day]" using the most-recent occurrence's actual Monday date
@@ -2729,6 +2574,75 @@ function renderInsights(){
 // ═══════════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+//  SCHEDULE TEMPLATE EDITOR
+// ═══════════════════════════════════════════════════════════════
+function openTmplEditor(tmplId){
+  document.getElementById('tmplEditorTitle').textContent = tmplId ? 'Edit Schedule Template' : 'Add Schedule Template';
+  document.getElementById('tmplEditingId').value = tmplId||'';
+  const existing = tmplId
+    ? (state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES).find(x=>x.id===tmplId)
+    : null;
+  document.getElementById('tmplName').value       = existing?.name||'';
+  document.getElementById('tmplGradeLabel').value = existing?.gradeLabel||'';
+  document.getElementById('tmplColor').value      = existing?.color||'#6366f1';
+  // Populate period rows
+  document.getElementById('tmplPeriodRows').innerHTML = '';
+  const periods = existing?.periods||[];
+  if(periods.length===0) periods.push({id:'',label:'',time:'',note:''});
+  periods.forEach(p => addTmplPeriodRow(p.id, p.label, p.time, p.note));
+  openModal('tmplEditorModal');
+}
+
+function addTmplPeriodRow(id,label,time,note){
+  const row = document.createElement('div');
+  row.className = 'tmpl-period-row';
+  row.style.cssText = 'display:grid;grid-template-columns:70px 1fr 110px 1fr 32px;gap:6px;align-items:center';
+  row.innerHTML = `
+    <input type="text" class="tp-id" placeholder="ID (e.g. ELA)" value="${esc(id||'')}"
+      style="padding:6px 8px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px;font-weight:700;text-transform:uppercase"
+      oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)">
+    <input type="text" class="tp-label" placeholder="Label (e.g. ELA / Circle)" value="${esc(label||'')}"
+      style="padding:6px 8px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px">
+    <input type="text" class="tp-time" placeholder="9:00–10:00" value="${esc(time||'')}"
+      style="padding:6px 8px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px;font-family:monospace">
+    <input type="text" class="tp-note" placeholder="Note (e.g. M/T: Music · W/Th: Art)" value="${esc(note||'')}"
+      style="padding:6px 8px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px;color:#94a3b8">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()" style="color:#dc2626;padding:4px">✕</button>`;
+  document.getElementById('tmplPeriodRows').appendChild(row);
+}
+
+function saveTemplateEdit(){
+  const name  = document.getElementById('tmplName').value.trim();
+  const grade = document.getElementById('tmplGradeLabel').value.trim();
+  const color = document.getElementById('tmplColor').value;
+  if(!name){toast('Please enter a template name','warn');return;}
+  if(!grade){toast('Please enter a grade label','warn');return;}
+  const periods = [...document.querySelectorAll('.tmpl-period-row')].map(row=>({
+    id:    row.querySelector('.tp-id').value.trim().toUpperCase(),
+    label: row.querySelector('.tp-label').value.trim(),
+    time:  row.querySelector('.tp-time').value.trim(),
+    note:  row.querySelector('.tp-note').value.trim()||undefined,
+  })).filter(p=>p.id&&p.label);
+  if(!periods.length){toast('Add at least one coverage block','warn');return;}
+  const editId = document.getElementById('tmplEditingId').value;
+  if(!state.settings.scheduleTemplates) state.settings.scheduleTemplates=[...DEFAULT_SCHEDULE_TEMPLATES];
+  if(editId){
+    const idx = state.settings.scheduleTemplates.findIndex(x=>x.id===editId);
+    const updated = {id:editId, name, gradeLabel:grade, color, periods};
+    if(idx>=0) state.settings.scheduleTemplates[idx]=updated;
+    else state.settings.scheduleTemplates.push(updated);
+  } else {
+    const newId = name.toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,12);
+    state.settings.scheduleTemplates.push({id:newId, name, gradeLabel:grade, color, periods});
+  }
+  saveState();
+  closeModal('tmplEditorModal');
+  renderSettings();
+  toast(editId ? 'Template updated' : 'Template added','ok');
+}
+
+
 async function init(){
   const today=new Date();
   document.getElementById('todayHdr').textContent=today.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
