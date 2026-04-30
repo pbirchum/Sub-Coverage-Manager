@@ -1390,36 +1390,119 @@ function getDateRange(){
   if(ft==='month'){const m=document.getElementById('filtMonth')?.value;if(m)return{s:m+'-01',e:m+'-31'};}
   return{s:null,e:null};
 }
+
+// ── Time-based scheduling utilities ──────────────────────────────
+// All scheduling logic is time-aware so that periods from different
+// templates are correctly compared against each other.
+
+function parseTimeMinutes(str){
+  // "8:25" → 505  (minutes since midnight)
+  if(!str||typeof str!=='string') return null;
+  const p=str.trim().split(':');
+  if(p.length<2) return null;
+  const h=parseInt(p[0]); const m=parseInt(p[1]);
+  return isNaN(h)||isNaN(m)?null:h*60+m;
+}
+
+function parseTimeRange(timeStr){
+  // "8:25–9:15" or "8:25-9:15" → {start:505, end:555}
+  if(!timeStr) return null;
+  const parts=timeStr.split(/[–\-]/).map(s=>s.trim());
+  if(parts.length<2) return null;
+  const start=parseTimeMinutes(parts[0]);
+  const end=parseTimeMinutes(parts[1]);
+  return (start!==null&&end!==null)?{start,end}:null;
+}
+
+function timesOverlap(r1,r2){
+  // Strict overlap — adjacent periods (same endpoint) do NOT overlap
+  if(!r1||!r2) return false;
+  return r1.start<r2.end && r2.start<r1.end;
+}
+
+function getPeriodRange(periodId){
+  // Return {start,end} for any period ID across default + all templates
+  let p=PERIOD_DEFS.find(x=>x.id===periodId);
+  if(p) return parseTimeRange(p.time);
+  for(const tmpl of (state.settings?.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES)){
+    p=(tmpl.periods||[]).find(x=>x.id===periodId);
+    if(p) return parseTimeRange(p.time);
+  }
+  return null;
+}
+
+function getSubBusyRanges(subName, ds, skipAbsIdx){
+  // Return all time ranges the sub is already booked for today (across ALL templates)
+  const day=state.roster[ds];
+  const ranges=[];
+  if(!day) return ranges;
+  day.absences.forEach((abs,i)=>{
+    if(i===skipAbsIdx) return;
+    Object.entries(abs.coverage||{}).forEach(([pid,assigned])=>{
+      if(assigned===subName&&assigned!=='__NCN__'){
+        const r=getPeriodRange(pid);
+        if(r) ranges.push({...r,pid});
+      }
+    });
+  });
+  return ranges;
+}
+
 function isSubAvailableForPeriod(sub, ds, periodId) {
   const dayKey = dayOfWeek(ds);
   const sched = sub.schedule?.[dayKey] || [];
-  // If no availability schedule set at all, assume always available
   const hasAnySched = sub.schedule && Object.values(sub.schedule).some(p=>p?.length>0);
-  if (!hasAnySched) return true;
-  // If this day has no checked periods and schedule IS set → unavailable today
-  if (sched.length === 0) return false;
-  // If this day has periods checked, sub must be available for this specific period
-  return sched.includes(periodId);
+  if (!hasAnySched) return true;          // no availability set → always available
+  if (sched.length === 0) return false;  // schedule set but nothing checked today → unavailable
+
+  // 1. Direct match — sub explicitly has this period ID checked
+  if (sched.includes(periodId)) return true;
+
+  // 2. Cross-template time check — the sub's checked periods use default HR/P1-P6 IDs,
+  //    but the target period may be from a different template (ELA, MATH, SPEC, etc.).
+  //    Treat the sub as available if ANY of their checked periods overlaps the target time.
+  const targetRange = getPeriodRange(periodId);
+  if (!targetRange) return true; // unknown period → assume available
+
+  return sched.some(avPid => {
+    const avRange = getPeriodRange(avPid);
+    return avRange && timesOverlap(targetRange, avRange);
+  });
 }
 
 function getSuggestion(ds, periodId, skipAbsIdx) {
+  const targetRange = getPeriodRange(periodId);
+
+  // Build a time-aware busy set: any sub already assigned to a period whose
+  // time window overlaps the target period — across ALL templates on this day.
+  const busySubs = new Set();
   const day = state.roster[ds];
-  // Subs already booked for this exact period by another teacher today
-  const busyThisPeriod = new Set();
   if (day) {
     day.absences.forEach((abs, i) => {
-      if (i !== skipAbsIdx && abs.coverage[periodId]) busyThisPeriod.add(abs.coverage[periodId]);
+      if (i === skipAbsIdx) return;
+      Object.entries(abs.coverage || {}).forEach(([pid, sub]) => {
+        if (!sub || sub === '__NCN__') return;
+        // Exact same period ID always counts as busy
+        if (pid === periodId) { busySubs.add(sub); return; }
+        // Time-overlap check for cross-template conflicts
+        if (targetRange) {
+          const covRange = getPeriodRange(pid);
+          if (covRange && timesOverlap(targetRange, covRange)) busySubs.add(sub);
+        }
+      });
     });
   }
-  // Subs on long-term assignments are dedicated to that classroom — exclude from suggestions
-  const ltaSubs=new Set((state.longTermAssignments||[])
+
+  // Subs on long-term assignments are dedicated to that classroom
+  const ltaSubs = new Set((state.longTermAssignments||[])
     .filter(a=>a.startDate<=ds&&a.endDate>=ds).map(a=>a.coverSub));
-  // Filter: not double-booked, available per schedule, and not dedicated to LTA
+
   const eligible = state.subs.filter(s =>
-    !busyThisPeriod.has(s.name) && !ltaSubs.has(s.name) && isSubAvailableForPeriod(s, ds, periodId)
+    !busySubs.has(s.name) && !ltaSubs.has(s.name) && isSubAvailableForPeriod(s, ds, periodId)
   );
   if (!eligible.length) return null;
-  // Group by tier, pick least-loaded within lowest available tier
+
+  // Group by tier, pick least-loaded within lowest tier
   const byTier = {};
   eligible.forEach(s => {
     const t = s.tier || 5;
@@ -1437,17 +1520,36 @@ function getSuggestion(ds, periodId, skipAbsIdx) {
 }
 function getConflicts(ds){
   const day=state.roster[ds];if(!day)return[];
-  // Gather all period IDs used by any teacher that day (supports mixed templates)
-  const allPeriodIds=new Set();
-  day.absences.forEach(a=>{Object.keys(a.coverage||{}).forEach(pid=>allPeriodIds.add(pid));});
-  const allPeriods=[...PERIOD_DEFS,...(state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES)
-    .flatMap(t=>t.periods)].filter(p=>allPeriodIds.has(p.id));
-  const seen=new Set(),uniquePeriods=allPeriods.filter(p=>{if(seen.has(p.id))return false;seen.add(p.id);return true;});
+  // Build a list of every (sub, periodId, timeRange) assignment today
+  const assignments=[];
+  day.absences.forEach(abs=>{
+    Object.entries(abs.coverage||{}).forEach(([pid,sub])=>{
+      if(!sub||sub==='__NCN__') return;
+      assignments.push({sub, pid, range:getPeriodRange(pid), label:pid});
+    });
+  });
+  // Find pairs where the same sub is assigned to two time-overlapping periods
+  const reported=new Set();
   const res=[];
-  for(const p of uniquePeriods){
-    const cnt={};
-    day.absences.forEach(a=>{const v=a.coverage[p.id];if(v&&v!=='__NCN__')cnt[v]=(cnt[v]||0)+1;});
-    for(const[sub,n] of Object.entries(cnt))if(n>1)res.push(`${sub} is double-booked for ${p.label||p.id}`);
+  for(let i=0;i<assignments.length;i++){
+    for(let j=i+1;j<assignments.length;j++){
+      const a=assignments[i], b=assignments[j];
+      if(a.sub!==b.sub) continue;
+      // Same period ID → definite conflict
+      const sameId = a.pid===b.pid;
+      // Different IDs but overlapping times → also a conflict
+      const timeConflict = a.range && b.range && timesOverlap(a.range, b.range);
+      if(sameId||timeConflict){
+        const key=`${a.sub}|${a.pid}|${b.pid}`;
+        if(!reported.has(key)){
+          reported.add(key);
+          const desc = sameId
+            ? `${a.sub} is double-booked for ${a.pid}`
+            : `${a.sub} has overlapping times: ${a.pid} (${a.range?Math.floor(a.range.start/60)+':'+(a.range.start%60).toString().padStart(2,'0'):''}) and ${b.pid} (${b.range?Math.floor(b.range.start/60)+':'+(b.range.start%60).toString().padStart(2,'0'):''})`; 
+          res.push(desc);
+        }
+      }
+    }
   }
   return res;
 }
