@@ -2050,7 +2050,6 @@ function openTeacherModal(id){
     const sel=document.getElementById('ps_'+pid);
     if(sel)sel.value=t?.periodSubjects?.[pid]||'';
   });
-  document.getElementById('tchrVrIn').value=t?.vrId||'';
   document.getElementById('tchrGrade').value=t?.grade||'';
   // Multi-subject: tick the right checkboxes
   const savedSubjects=t?.subjects||( t?.subject ? [t.subject] : [] );
