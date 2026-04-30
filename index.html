@@ -398,6 +398,14 @@ tr:hover td{background:#f8fafc}
         <div id="holidayLst" style="max-height:260px;overflow-y:auto"></div>
       </div>
       <div class="card">
+        <div class="card-header">
+          <div class="card-title">📚 Subject List</div>
+          <button class="btn btn-outline btn-sm" onclick="addCustomSubject()">+ Add Subject</button>
+        </div>
+        <p style="font-size:.78rem;color:#64748b;margin-bottom:10px">These subjects appear in teacher period profiles. Edit freely — changes apply immediately to new teacher profiles.</p>
+        <div id="customSubjectsList"></div>
+      </div>
+      <div class="card">
         <div class="card-header"><div class="card-title">💾 Data Management</div></div>
         <div style="display:flex;flex-direction:column;gap:10px">
           <button class="btn btn-outline" onclick="exportData()">⬇ Export All Data (JSON)</button>
@@ -427,71 +435,6 @@ tr:hover td{background:#f8fafc}
         <div id="vrCodesContainer" style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div>
         <button type="button" class="btn btn-outline btn-sm" onclick="addVrCodeRow()" style="margin-top:8px">+ Add VR Code</button>
       </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>🎓 Grade Level</label>
-        <select id="tchrGrade">
-          <option value="">— Select —</option>
-          <option>Pre-K</option><option>Kindergarten</option>
-          <option>1st Grade</option><option>2nd Grade</option><option>3rd Grade</option>
-          <option>4th Grade</option><option>5th Grade</option><option>6th Grade</option>
-          <option>7th Grade</option><option>8th Grade</option><option>9th Grade</option>
-          <option>10th Grade</option><option>11th Grade</option><option>12th Grade</option>
-          <option>Multiple Grades</option><option>School-Wide</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0;grid-column:1/-1">
-        <label>📚 Subjects Taught (select all that apply)</label>
-        <div id="tchrSubjectGrid" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;padding:10px;background:#f8fafc;border:1.5px solid #CBD5E1;border-radius:7px;max-height:140px;overflow-y:auto">
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Elementary - Multi-Subject" style="accent-color:#1e40af;width:14px;height:14px"> Elementary - Multi-Subject
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="ELA / Reading" style="accent-color:#1e40af;width:14px;height:14px"> ELA / Reading
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Math" style="accent-color:#1e40af;width:14px;height:14px"> Math
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Science" style="accent-color:#1e40af;width:14px;height:14px"> Science
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Social Studies" style="accent-color:#1e40af;width:14px;height:14px"> Social Studies
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="History" style="accent-color:#1e40af;width:14px;height:14px"> History
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="PE / Health" style="accent-color:#1e40af;width:14px;height:14px"> PE / Health
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Art" style="accent-color:#1e40af;width:14px;height:14px"> Art
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Music" style="accent-color:#1e40af;width:14px;height:14px"> Music
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Technology" style="accent-color:#1e40af;width:14px;height:14px"> Technology
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Special Education" style="accent-color:#1e40af;width:14px;height:14px"> Special Education
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="ESL / ELL" style="accent-color:#1e40af;width:14px;height:14px"> ESL / ELL
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Counseling" style="accent-color:#1e40af;width:14px;height:14px"> Counseling
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Administration" style="accent-color:#1e40af;width:14px;height:14px"> Administration
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:.82rem;font-weight:400;text-transform:none;letter-spacing:0;color:#334155;background:white;border:1px solid #e2e8f0;transition:background .1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
-            <input type="checkbox" class="tchr-subject-cb" value="Other" style="accent-color:#1e40af;width:14px;height:14px"> Other
-          </label>
-        </div>
-      </div>
-    </div>
-    <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">Weekly Schedule (check periods this teacher teaches)</label>
-    <div class="sched-grid" id="schedGrid"></div>
     <div style="margin-top:16px;margin-bottom:14px">
       <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">📚 Period → Subject (optional — helps subs know what they're covering)</label>
       <div style="background:#f8fafc;border:1.5px solid #CBD5E1;border-radius:7px;padding:10px 14px">
@@ -651,7 +594,8 @@ tr:hover td{background:#f8fafc}
         </div>
       </div>
     </div>
-    <input type="hidden" id="tchrModalId">
+    <div id="periodDetailsGrid" style="margin-top:16px;margin-bottom:14px"></div>
+        <input type="hidden" id="tchrModalId">
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:14px;border-top:1px solid #f1f5f9">
       <button class="btn btn-outline" onclick="closeModal('tchrModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveTeacher()">Save Teacher</button>
@@ -1155,7 +1099,7 @@ function normalizeState(s){
   s.teachers=toArr(s.teachers).map(t=>({
     id:t.id||'t'+Math.random(),name:t.name||'',
     teamsLink:t.teamsLink||'',vrId:t.vrId||'',
-    grade:t.grade||'',subjects:toArr(t.subjects,t.subject?[t.subject]:[]),periodSubjects:t.periodSubjects||{},vrCodes:toArr(t.vrCodes,t.vrId?[{desc:'',code:t.vrId}]:[]),
+    periodGrades:t.periodGrades||{},periodSubjects:t.periodSubjects||{},vrCodes:toArr(t.vrCodes,t.vrId?[{desc:'',code:t.vrId}]:[]),
     schedule:{
       Mon:toArr(t.schedule?.Mon),Tue:toArr(t.schedule?.Tue),
       Wed:toArr(t.schedule?.Wed),Thu:toArr(t.schedule?.Thu)
@@ -2034,6 +1978,56 @@ function addVrCodeRow(desc,code){
     <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()" style="flex-shrink:0">✕</button>`;
   container.appendChild(row);
 }
+
+// ── Custom subjects helper (see Settings section for full version)
+// function getCustomSubjects() — defined in Settings section
+function _unused_getCustomSubjects(){
+  return state.settings?.customSubjects||["Elementary - Multi-Subject", "ELA / Reading", "Math", "Science", "Social Studies", "History", "PE / Health", "Art", "Music", "Technology", "Special Education", "ESL / ELL", "Counseling", "Administration", "Other"];
+}
+
+// ── Build period details grid in teacher modal ────────────────
+function buildPeriodDetailsGrid(teacher){
+  const el=document.getElementById('periodDetailsGrid');
+  if(!el)return;
+  const subjects=getCustomSubjects();
+  const subjOpts=subjects.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  el.innerHTML=`
+    <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">📚 Period Details — Grade &amp; Subject per period</label>
+    <div style="background:#f8fafc;border:1.5px solid #CBD5E1;border-radius:7px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:45px 90px 1fr 1fr;gap:0;background:#f1f5f9;padding:6px 12px;font-size:.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.04em">
+        <div>Period</div><div>Time</div><div>Grade</div><div>Subject</div>
+      </div>
+      ${['HR','P1','P2','P3','P4','P5','P6'].map((pid,i)=>{
+        const time={'HR':'8:00–8:25','P1':'8:25–9:15','P2':'9:25–10:15','P3':'10:25–11:15','P4':'11:25–12:15','P5':'1:00–1:50','P6':'2:00–2:50'}[pid];
+        const savedGrade=teacher?.periodGrades?.[pid]||'';
+        const savedSubj=teacher?.periodSubjects?.[pid]||'';
+        const gradeOpts=`<option value="">— Grade —</option>        <option value='Pre-K'>Pre-K</option>
+        <option value='Kindergarten'>Kindergarten</option>
+        <option value='1st Grade'>1st Grade</option>
+        <option value='2nd Grade'>2nd Grade</option>
+        <option value='3rd Grade'>3rd Grade</option>
+        <option value='4th Grade'>4th Grade</option>
+        <option value='5th Grade'>5th Grade</option>
+        <option value='6th Grade'>6th Grade</option>
+        <option value='7th Grade'>7th Grade</option>
+        <option value='8th Grade'>8th Grade</option>
+        <option value='9th Grade'>9th Grade</option>
+        <option value='10th Grade'>10th Grade</option>
+        <option value='11th Grade'>11th Grade</option>
+        <option value='12th Grade'>12th Grade</option>
+        <option value='Multiple Grades'>Multiple Grades</option>
+        <option value='School-Wide'>School-Wide</option>`.replace(`value='${savedGrade}'`,`value='${savedGrade}' selected`);
+        const subjectOpts=`<option value="">— Subject —</option>${subjOpts}`.replace(`value="${esc(savedSubj)}"`,`value="${esc(savedSubj)}" selected`);
+        return `<div style="display:grid;grid-template-columns:45px 90px 1fr 1fr;gap:8px;align-items:center;padding:6px 12px;border-top:1px solid #e2e8f0;background:${i%2===0?'white':'#fafafa'}">
+          <div style="font-weight:700;font-size:.82rem;color:#334155">${pid}</div>
+          <div style="font-size:.7rem;color:#94a3b8">${time}</div>
+          <select id="pg_${pid}" style="padding:5px 6px;font-size:.8rem;border:1px solid #e2e8f0;border-radius:5px;background:white">${gradeOpts}</select>
+          <select id="ps_${pid}" style="padding:5px 6px;font-size:.8rem;border:1px solid #e2e8f0;border-radius:5px;background:white">${subjectOpts}</select>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
 function openTeacherModal(id){
   const t=id?state.teachers.find(x=>x.id===id):null;
   document.getElementById('tchrModalTitle').textContent=t?'Edit Teacher':'Add Teacher';
@@ -2045,12 +2039,10 @@ function openTeacherModal(id){
   const vrList=t?.vrCodes&&t.vrCodes.length?t.vrCodes:(t?.vrId?[{desc:'',code:t.vrId}]:[]);
   if(vrList.length===0)vrList.push({desc:'',code:''});
   vrList.forEach(entry=>addVrCodeRow(entry.desc,entry.code));
-  // Period subjects
-  ['HR','P1','P2','P3','P4','P5','P6'].forEach(pid=>{
-    const sel=document.getElementById('ps_'+pid);
-    if(sel)sel.value=t?.periodSubjects?.[pid]||'';
-  });
-  document.getElementById('tchrGrade').value=t?.grade||'';
+  // Period details grid (grade + subject per period)
+  openModal('tchrModal'); // open first so elements exist
+  buildPeriodDetailsGrid(t);
+  // (modal already opened above — skip the second openModal call below)
   // Multi-subject: tick the right checkboxes
   const savedSubjects=t?.subjects||( t?.subject ? [t.subject] : [] );
   document.querySelectorAll('.tchr-subject-cb').forEach(cb=>{
@@ -2071,7 +2063,7 @@ function openTeacherModal(id){
     });
   }
   document.getElementById('schedGrid').innerHTML=html;
-  openModal('tchrModal');
+  // (modal opened earlier in this function)
 }
 
 function saveTeacher(){
@@ -2087,18 +2079,20 @@ function saveTeacher(){
     desc:row.querySelector('.vr-desc').value.trim(),
     code:row.querySelector('.vr-code').value.trim()
   })).filter(e=>e.code);
-  const grade=document.getElementById('tchrGrade').value;
-  const subjects=[...document.querySelectorAll('.tchr-subject-cb:checked')].map(cb=>cb.value);
-  const periodSubjects={};
+  // Read per-period grade and subject
+  const periodGrades={},periodSubjects={};
   ['HR','P1','P2','P3','P4','P5','P6'].forEach(pid=>{
-    const v=document.getElementById('ps_'+pid)?.value||'';
-    if(v)periodSubjects[pid]=v;
+    const g=document.getElementById('pg_'+pid)?.value||'';
+    const s=document.getElementById('ps_'+pid)?.value||'';
+    if(g)periodGrades[pid]=g;
+    if(s)periodSubjects[pid]=s;
   });
+  const grade=''; const subjects=[];
   if(id){
     const t=state.teachers.find(x=>x.id===id);
-    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrCodes=vrCodes;t.grade=grade;t.subjects=subjects;t.periodSubjects=periodSubjects;}
+    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrCodes=vrCodes;t.periodGrades=periodGrades;t.periodSubjects=periodSubjects;}
   } else {
-    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrCodes,grade,subjects,periodSubjects});
+    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrCodes,periodGrades,periodSubjects});
     state.teachers.sort((a,b)=>a.name.localeCompare(b.name));
   }
   saveState();closeModal('tchrModal');renderTeachers();
@@ -2219,6 +2213,34 @@ function renderSettings(){
   const fbCard=document.getElementById('fbSetupCard');
   if(fbCard)renderFbSettingsCard(fbEnabled, BUILT_IN_FIREBASE_CONFIG?.projectId||'');
   document.getElementById('holidayLst').innerHTML+= ltaHtml;
+  // Subjects list
+  const subjs=getCustomSubjects();
+  document.getElementById('customSubjectsList').innerHTML=subjs.map((s,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8fafc">
+      <input type="text" value="${esc(s)}" style="flex:1;padding:5px 10px;font-size:.85rem;border:1px solid #e2e8f0;border-radius:6px"
+        onchange="editCustomSubject(${i},this.value)">
+      <button class="btn btn-ghost btn-sm" onclick="removeCustomSubject(${i})">✕</button>
+    </div>`).join('')||'<p style="color:#94a3b8;font-size:.85rem">No subjects yet</p>';
+}
+
+function getCustomSubjects(){
+  // Already defined above but override with state version here
+  return state.settings?.customSubjects||["Elementary - Multi-Subject", "ELA / Reading", "Math", "Science", "Social Studies", "History", "PE / Health", "Art", "Music", "Technology", "Special Education", "ESL / ELL", "Counseling", "Administration", "Other"];
+}
+function addCustomSubject(){
+  if(!state.settings.customSubjects)state.settings.customSubjects=[...getCustomSubjects()];
+  state.settings.customSubjects.push('New Subject');
+  saveState();renderSettings();
+}
+function editCustomSubject(i,val){
+  if(!state.settings.customSubjects)state.settings.customSubjects=[...getCustomSubjects()];
+  state.settings.customSubjects[i]=val;
+  saveState();
+}
+function removeCustomSubject(i){
+  if(!state.settings.customSubjects)state.settings.customSubjects=[...getCustomSubjects()];
+  state.settings.customSubjects.splice(i,1);
+  saveState();renderSettings();
 }
 function saveSettings(){
   state.settings.schoolName=document.getElementById('sSchool').value.trim()||'OptimaED';
@@ -2420,25 +2442,35 @@ function renderGradeSubjectList(allEntries,yearFilter){
     allEntries=rosters.flatMap(({label,roster})=>Object.entries(roster||{}).map(([date,day])=>({date,day,year:label})));
   }
   const daysWithAbs=allEntries.filter(e=>e.day.absences?.length>0);
+  // Count actual PERIODS covered, keyed by teacher's per-period grade or subject
   const counts={};
-  daysWithAbs.forEach(e=>{
+  allEntries.forEach(e=>{
     (e.day.absences||[]).forEach(a=>{
       if(!a.teacher)return;
       const t=state.teachers.find(x=>x.name===a.teacher);
-      const subjectList=t?.subjects&&t.subjects.length?t.subjects:(t?.subject?[t.subject]:['Unknown Subject']);
-      const keys=insightsAbsView==='grade'?[t?.grade||'Unknown Grade']:subjectList;
-      keys.forEach(key=>{ counts[key]=(counts[key]||0)+1; });
+      ['HR','P1','P2','P3','P4','P5','P6'].forEach(pid=>{
+        const cov=a.coverage?.[pid];
+        if(!cov||cov==='__NCN__')return; // skip uncovered or explicitly no-sub
+        let key;
+        if(insightsAbsView==='grade'){
+          key=t?.periodGrades?.[pid]||t?.grade||'Unknown Grade';
+        } else {
+          key=t?.periodSubjects?.[pid]||'Unknown Subject';
+        }
+        counts[key]=(counts[key]||0)+1;
+      });
     });
   });
   const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
   const maxN=sorted[0]?.[1]||1;
   const el=document.getElementById('gradeSubjectList');
   if(!el)return;
+  const unitLabel='periods covered';
   el.innerHTML=sorted.map(([key,n])=>`
     <div class="wl-row">
       <div class="wl-name" style="width:160px;font-size:.82rem" title="${esc(key)}">${esc(key)}</div>
       <div class="wl-bar-wrap"><div class="wl-bar" style="width:${Math.round(n/maxN*100)}%;background:${insightsAbsView==='grade'?'#6366f1':'#f59e0b'}"></div></div>
-      <div class="wl-count" style="color:${insightsAbsView==='grade'?'#4f46e5':'#92400e'}">${n}</div>
+      <div class="wl-count" title="${n} ${unitLabel}" style="color:${insightsAbsView==='grade'?'#4f46e5':'#92400e'}">${n}</div>
     </div>`).join('')||'<p style="color:#94a3b8;padding:16px">No data — add grade/subject to teacher profiles to see this chart.</p>';
 }
 
@@ -2504,22 +2536,32 @@ function renderInsights(){
   // Grade/Subject breakdown (replaces old "most absent teachers" block)
   renderGradeSubjectList(allEntries);
 
-  // High-need weeks
+  // High-need weeks: group by calendar position (month + week-of-month) for cross-year averaging
+  // Display as "Week of [Month Day]" using the most-recent occurrence's actual Monday date
   const weekMap={};
   daysWithAbs.forEach(e=>{
-    const d=parseDate(e.date);const jan1=new Date(d.getFullYear(),0,1);
-    const wk=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
-    const key=`Week ${wk}`;
-    if(!weekMap[key]){weekMap[key]={total:0,years:new Set()};}
-    weekMap[key].total+=e.day.absences.length;weekMap[key].years.add(e.year);
+    const d=parseDate(e.date);
+    const dow=d.getDay();
+    const mon=new Date(d);mon.setDate(d.getDate()-(dow===0?6:dow-1));
+    // Cross-year key: month abbreviation + week-of-month (so Nov W1 aggregates across years)
+    const monthAbbr=mon.toLocaleDateString('en-US',{month:'short'});
+    const weekOfMonth=Math.ceil(mon.getDate()/7);
+    const calKey=monthAbbr+' W'+weekOfMonth;
+    if(!weekMap[calKey]){weekMap[calKey]={total:0,years:new Set(),latestMon:mon};}
+    weekMap[calKey].total+=e.day.absences.length;
+    weekMap[calKey].years.add(e.year);
+    if(mon>weekMap[calKey].latestMon)weekMap[calKey].latestMon=mon;
   });
-  const weekAvg=Object.entries(weekMap).map(([wk,{total,years}])=>({wk,avg:total/Math.max(years.size,1)}))
-    .sort((a,b)=>b.avg-a.avg).slice(0,10);
+  const weekAvg=Object.entries(weekMap).map(([calKey,{total,years,latestMon}])=>({
+    calKey,
+    label:'Week of '+latestMon.toLocaleDateString('en-US',{month:'long',day:'numeric'}),
+    avg:total/Math.max(years.size,1)
+  })).sort((a,b)=>b.avg-a.avg).slice(0,10);
   const maxW=weekAvg[0]?.avg||1;
   document.getElementById('insightsWeekList').innerHTML=
-    `<p style="font-size:.78rem;color:#64748b;margin-bottom:8px">Average absences per week across all years</p>`+
-    weekAvg.map(({wk,avg})=>`<div class="wl-row">
-      <div class="wl-name" style="width:75px;font-size:.8rem">${wk}</div>
+    `<p style="font-size:.78rem;color:#64748b;margin-bottom:8px">Average absences per week · grouped by calendar position across years</p>`+
+    weekAvg.map(({label,avg})=>`<div class="wl-row">
+      <div class="wl-name" style="width:150px;font-size:.78rem;white-space:nowrap">${label}</div>
       <div class="wl-bar-wrap"><div class="wl-bar" style="width:${Math.round(avg/maxW*100)}%;background:#f59e0b"></div></div>
       <div class="wl-count" style="color:#92400e;font-size:.8rem">${avg.toFixed(1)}</div>
     </div>`).join('')||'<p style="color:#94a3b8;padding:16px">No data yet</p>';
