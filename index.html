@@ -394,14 +394,7 @@ tr:hover td{background:#f8fafc}
         <p style="font-size:.78rem;color:#64748b;margin-bottom:10px">Grade-specific schedule layouts. Assign a template in a teacher's profile to replace the default HR/P1–P6 blocks.</p>
         <div id="templatesSettingsList"></div>
       </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">📚 Subject List</div>
-          <button class="btn btn-outline btn-sm" onclick="addCustomSubject()">+ Add Subject</button>
-        </div>
-        <p style="font-size:.78rem;color:#64748b;margin-bottom:10px">These subjects appear in teacher period profiles. Edit freely — changes apply immediately to new teacher profiles.</p>
-        <div id="customSubjectsList"></div>
-      </div>
+
       <div class="card">
         <div class="card-header"><div class="card-title">💾 Data Management</div></div>
         <div style="display:flex;flex-direction:column;gap:10px">
@@ -1098,7 +1091,12 @@ function normalizeState(s){
   if(!s.settings||typeof s.settings!=='object'){
     s.settings={schoolName:'OptimaED',yearStart:'2025-08-13',yearEnd:'2026-05-28',scheduleTemplates:[...DEFAULT_SCHEDULE_TEMPLATES]};
   }
-  if(!s.settings.scheduleTemplates)s.settings.scheduleTemplates=[...DEFAULT_SCHEDULE_TEMPLATES];
+  // Convert scheduleTemplates from Firebase object back to array (Firebase converts arrays to objects)
+  s.settings.scheduleTemplates=toArr(s.settings.scheduleTemplates,null)||[...DEFAULT_SCHEDULE_TEMPLATES];
+  // Also normalise each template's periods array
+  s.settings.scheduleTemplates.forEach(tm=>{
+    if(tm&&!Array.isArray(tm.periods))tm.periods=toArr(tm.periods,[]);
+  });
   // Long-term assignments
   s.longTermAssignments=toArr(s.longTermAssignments,[]);
   // Archived years (object keyed by year label)
@@ -1210,8 +1208,11 @@ function saveState(){
   setSyncStatus('saving');
   clearTimeout(fbSaveTimer);
   fbSaveTimer=setTimeout(()=>{
+    // Strip any undefined values (Firebase rejects them) via JSON round-trip
+    let cleanState;
+    try{ cleanState=JSON.parse(JSON.stringify(state)); } catch(e){ cleanState=state; }
     fbApplyingRemote=true;
-    fbDb.ref('subCoverageState').set(state)
+    fbDb.ref('subCoverageState').set(cleanState)
       .then(()=>{
         fbApplyingRemote=false;
         setSyncStatus('saved');
@@ -2228,14 +2229,7 @@ function renderSettings(){
         </div>
       </div>`).join('')||'<p style="color:#94a3b8;font-size:.85rem">No custom templates</p>';
   }
-  // Subjects list
-  const subjs=getCustomSubjects();
-  document.getElementById('customSubjectsList').innerHTML=subjs.map((s,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f8fafc">
-      <input type="text" value="${esc(s)}" style="flex:1;padding:5px 10px;font-size:.85rem;border:1px solid #e2e8f0;border-radius:6px"
-        onchange="editCustomSubject(${i},this.value)">
-      <button class="btn btn-ghost btn-sm" onclick="removeCustomSubject(${i})">✕</button>
-    </div>`).join('')||'<p style="color:#94a3b8;font-size:.85rem">No subjects yet</p>';
+
 }
 
 function getCustomSubjects(){
@@ -2627,7 +2621,7 @@ function saveTemplateEdit(){
     id:    row.querySelector('.tp-id').value.trim().toUpperCase(),
     label: row.querySelector('.tp-label').value.trim(),
     time:  row.querySelector('.tp-time').value.trim(),
-    note:  row.querySelector('.tp-note').value.trim()||undefined,
+    ...(row.querySelector('.tp-note').value.trim() ? {note:row.querySelector('.tp-note').value.trim()} : {})
   })).filter(p=>p.id&&p.label);
   if(!periods.length){toast('Add at least one coverage block','warn');return;}
   const editId = document.getElementById('tmplEditingId').value;
