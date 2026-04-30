@@ -125,6 +125,7 @@ tr:hover td{background:#f8fafc}
 .cal-cell.c4{background:#1e40af;color:white}
 .cal-cell.holiday{background:#ede9fe;color:#7c3aed;cursor:default}
 .cal-cell.empty{background:transparent;pointer-events:none}
+.cal-week-sep{width:2px;height:30px;background:#d1d5db;border-radius:1px;flex-shrink:0;align-self:center}
 .cal-month-lbl{font-size:.82rem;font-weight:700;color:#475569;margin:12px 0 6px;text-transform:uppercase;letter-spacing:.06em}
 /* Teacher schedule grid */
 .sched-grid{display:grid;grid-template-columns:60px repeat(4,1fr);gap:4px;font-size:.8rem}
@@ -1594,6 +1595,9 @@ function renderAbsCard(ds,abs,idx){
   const teacher=state.teachers.find(t=>t.name===abs.teacher);
   const schedForDay=teacher?getTeacherScheduleForDay(abs.teacher,ds):null;
   const hasSchedule=schedForDay&&schedForDay.length>0;
+  // Declare these early — used in the template literal below
+  const periodsToRender=getTeacherPeriods(abs.teacher);
+  const tmpl=getTeacherTemplate(abs.teacher);
 
   // Build Teams/VR info strip
   let infoStrip='';
@@ -1631,8 +1635,6 @@ function renderAbsCard(ds,abs,idx){
       <div class="period-grid">`;
 
   const conflicts=getConflicts(ds);
-  const periodsToRender=getTeacherPeriods(abs.teacher);
-  const tmpl=getTeacherTemplate(abs.teacher);
   for(const p of periodsToRender){
     const val=abs.coverage[p.id]||'';
     const teaches=!hasSchedule||schedForDay.includes(p.id);
@@ -1890,9 +1892,12 @@ function renderCalendar(yearLabel){
     html+=`<div class="cal-month-lbl">${fmtMonth(mk+'-01')}</div><div class="cal-grid">`;
     const firstDow=days[0]?.dow||1;
     for(let i=1;i<firstDow;i++)html+=`<div class="cal-cell empty"></div>`;
-    days.forEach(({ds,abs,hol})=>{
+    days.forEach(({ds,abs,hol},i)=>{
       const d2=parseDate(ds);
       const cls=hol?'holiday':heatCls(abs);
+      // Insert a vertical divider before Thursday (dow=4) to mark end of each week
+      // Each school week is Mon-Thu; after Thu we start a new week
+      if(i>0&&d2.getDay()===1) html+=`<div class="cal-week-sep"></div>`; // Monday = new week starts
       html+=`<div class="cal-cell ${cls}" title="${ds}: ${hol?'Holiday':abs>0?abs+' absent':'Clear'}" onclick="if(!${hol})jumpToRoster('${ds}')" style="cursor:${hol?'default':'pointer'}">${d2.getDate()}</div>`;
     });
     html+=`</div>`;
