@@ -1003,7 +1003,7 @@ let fbSaveTimer = null;
 let fbApplyingRemote = false; // prevents echo loop
 
 function buildDefault(){
-  const teachers = SEED_TEACHERS.map((name,i)=>({id:'t'+i,name,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]},teamsLink:'',vrId:''}));
+  const teachers = SEED_TEACHERS.map((name,i)=>({id:'t'+i,name,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]},teamsLink:'',vrId:'',vrCodes:[],scheduleTemplate:null}));
   const subs = SEED_SUBS.map((name,i)=>({id:'s'+i,name,tier:TIER_MAP[name]||5,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]}}));
   const roster={};
   for(const [d,abs,notes] of SEED_ROSTER){
@@ -1064,7 +1064,7 @@ function normalizeState(s){
     s.subs=SEED_SUBS.map((name,i)=>({id:'s'+i,name,tier:TIER_MAP[name]||5,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]}}));
   }
   if(s.teachers.length===0){
-    s.teachers=SEED_TEACHERS.map((name,i)=>({id:'t'+i,name,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]},teamsLink:'',vrId:''}));
+    s.teachers=SEED_TEACHERS.map((name,i)=>({id:'t'+i,name,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]},teamsLink:'',vrId:'',vrCodes:[],scheduleTemplate:null}));
   }
   // Holidays & links
   s.holidays=toArr(s.holidays,[...SEED_HOLIDAYS]);
@@ -1206,12 +1206,15 @@ function saveState(){
   }
 
   setSyncStatus('saving');
+  // Block the real-time listener from overwriting local edits while
+  // a save is pending — this prevents the race condition where the
+  // listener fires during the debounce window and wipes unsaved changes.
+  fbApplyingRemote=true;
   clearTimeout(fbSaveTimer);
   fbSaveTimer=setTimeout(()=>{
     // Strip any undefined values (Firebase rejects them) via JSON round-trip
     let cleanState;
     try{ cleanState=JSON.parse(JSON.stringify(state)); } catch(e){ cleanState=state; }
-    fbApplyingRemote=true;
     fbDb.ref('subCoverageState').set(cleanState)
       .then(()=>{
         fbApplyingRemote=false;
@@ -2761,13 +2764,10 @@ async function init(){
   // Load state
   state=await loadState();
 
-  // Reseed if subs/teachers missing (first Firebase load or corrupted data)
-  if(fbEnabled&&fbDb&&(state.subs.length===0||state.teachers.length===0)){
-    state=buildDefault();
-    fbApplyingRemote=true;
-    fbDb.ref('subCoverageState').set(state).then(()=>{fbApplyingRemote=false;});
-    toast('Data restored from seed','ok');
-  }
+  // normalizeState() already guarantees teachers/subs are never empty
+  // (it seeds from SEED_TEACHERS/SEED_SUBS if the arrays are missing).
+  // An aggressive reseed here would overwrite real Firebase data with
+  // seed defaults, wiping VR codes, schedule templates, etc. — removed.
 
   document.getElementById('schoolNameHdr').textContent=state.settings?.schoolName||'OptimaED';
 
