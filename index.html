@@ -391,6 +391,7 @@ tr:hover td{background:#f8fafc}
         <div style="display:flex;flex-direction:column;gap:10px">
           <button class="btn btn-outline" onclick="exportData()">⬇ Export All Data (JSON)</button>
           <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">⬆ Import Data (JSON)</button>
+          <button class="btn btn-outline" onclick="if(confirm('Refresh every teacher’s periods and Teams link from the built-in seed data? Your absence roster and coverage assignments will NOT be touched.'))reseedTeachers()">🔄 Refresh Teacher Schedules from Seed</button>
           <button class="btn btn-danger" onclick="if(confirm('Reset ALL data to defaults from the original spreadsheet?'))resetData()">⚠ Reset to Original Data</button>
         </div>
       </div>
@@ -1350,6 +1351,44 @@ let fbEnabled = false;
 let fbSaveTimer = null;
 let fbApplyingRemote = false; // prevents echo loop
 
+// Seed version — bump this whenever SEED_TEACHER_SCHEDULES changes to force clients
+// (and the Firebase copy) to re-hydrate teacher periods + Teams links from the current seed.
+const CURRENT_SEED_VERSION = 3;
+
+// Re-apply seed periods + Teams link + grade for every seeded teacher.
+// Non-seeded teachers keep whatever's stored. Coverage assignments are NOT touched
+// (they live on roster entries, keyed by period id).
+function applySeedRefresh(s){
+  const seededMap = {};
+  SEED_TEACHER_SCHEDULES.forEach(sc=>{ seededMap[sc.name]=sc; });
+  const existingByName = {};
+  (s.teachers||[]).forEach(t=>{ existingByName[t.name]=t; });
+  // Rebuild teacher list: seeded teachers get seed data; unseeded teachers preserved.
+  const merged = [];
+  const seenNames = new Set();
+  SEED_TEACHERS.forEach((name,i)=>{
+    const seed = seededMap[name];
+    const existing = existingByName[name];
+    merged.push({
+      id: existing?.id || 't'+i,
+      name,
+      grade: seed?.grade || existing?.grade || '',
+      band:  seed?.band  || existing?.band  || '',
+      periods: seed ? JSON.parse(JSON.stringify(seed.periods)) : (existing?.periods||[]),
+      teamsLink: seed?.teamsLink || existing?.teamsLink || ''
+    });
+    seenNames.add(name);
+  });
+  // Any manually-added teachers not in SEED_TEACHERS list — keep them
+  (s.teachers||[]).forEach(t=>{
+    if(!seenNames.has(t.name)) merged.push(t);
+  });
+  s.teachers = merged;
+  s.settings = s.settings || {};
+  s.settings.seedVersion = CURRENT_SEED_VERSION;
+  return s;
+}
+
 function buildDefault(){
   // Build teachers: seeded ones with their periods, plus unscheduled names with empty periods
   const seededMap = {};
@@ -1590,12 +1629,22 @@ async function loadState(){
     try{
       const snapshot=await fbDb.ref('subCoverageState').get();
       if(snapshot.exists()){
-        const normalized=normalizeState(snapshot.val());
-        // If the database has data but subs/teachers look like seed data needs a push, re-write
+        let normalized=normalizeState(snapshot.val());
+        // Re-hydrate teacher periods + Teams links from the current seed if stale
+        const storedVer = normalized.settings?.seedVersion || 0;
+        if(storedVer < CURRENT_SEED_VERSION){
+          console.log(`[seed] Upgrading state from v${storedVer} → v${CURRENT_SEED_VERSION}: re-applying teacher schedules from seed.`);
+          normalized = applySeedRefresh(normalized);
+          // Push the refreshed state back to Firebase so every device gets it
+          try{
+            await fbDb.ref('subCoverageState').set(JSON.parse(JSON.stringify(normalized)));
+          }catch(e){console.warn('Seed refresh push failed:', e);}
+        }
         return normalized;
       }
       // Database is empty — build defaults, push them up so all devices get them
       const def=buildDefault();
+      def.settings.seedVersion = CURRENT_SEED_VERSION;
       await fbDb.ref('subCoverageState').set(def);
       return def;
     }catch(e){
@@ -1604,7 +1653,16 @@ async function loadState(){
   }
   // Fallback: localStorage
   const saved=lsGet('scm_v2');
-  return saved||buildDefault();
+  if(saved){
+    let normalized = normalizeState(saved);
+    if((normalized.settings?.seedVersion||0) < CURRENT_SEED_VERSION){
+      normalized = applySeedRefresh(normalized);
+    }
+    return normalized;
+  }
+  const def = buildDefault();
+  def.settings.seedVersion = CURRENT_SEED_VERSION;
+  return def;
 }
 
 // ── UI helpers for connect/disconnect ─────────────────────────
@@ -2618,6 +2676,12 @@ function importData(e){
   r.readAsText(file);e.target.value='';
 }
 function resetData(){state=buildDefault();saveState();switchTab('roster');toast('Reset to original data','ok');}
+function reseedTeachers(){
+  state = applySeedRefresh(state);
+  saveState();
+  switchTab('teachers');
+  toast('Teacher schedules refreshed from seed','ok');
+}
 function printRoster(){
   const ds=currentDate;
   const day=state.roster[ds]||{absences:[],notes:''};
