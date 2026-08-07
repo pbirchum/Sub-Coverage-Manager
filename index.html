@@ -373,9 +373,8 @@ tr:hover td{background:#f8fafc}
         <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
       </div>
       <div class="card">
-        <div class="card-header"><div class="card-title">🕐 Period Schedule</div></div>
-        <div id="periodEd"></div>
-        <button class="btn btn-outline btn-sm" onclick="saveSettings()" style="margin-top:10px">Save Schedule</button>
+        <div class="card-header"><div class="card-title">🕐 Period Format</div></div>
+        <p style="font-size:.82rem;color:#64748b;line-height:1.55">This school year, each teacher has their own period times because bell schedules vary by grade band and section. Edit period times per teacher in the <strong>Teachers</strong> tab. Coverage grids on the Roster tab show each teacher's own periods for the selected day.</p>
       </div>
     </div>
     <div>
@@ -385,14 +384,6 @@ tr:hover td{background:#f8fafc}
           <button class="btn btn-outline btn-sm" onclick="openHolidayModal()">+ Add</button>
         </div>
         <div id="holidayLst" style="max-height:260px;overflow-y:auto"></div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">📅 Schedule Templates</div>
-          <button class="btn btn-outline btn-sm" onclick="openTmplEditor()">+ Add Template</button>
-        </div>
-        <p style="font-size:.78rem;color:#64748b;margin-bottom:10px">Grade-specific schedule layouts. Assign a template in a teacher's profile to replace the default HR/P1–P6 blocks.</p>
-        <div id="templatesSettingsList"></div>
       </div>
 
       <div class="card">
@@ -409,46 +400,27 @@ tr:hover td{background:#f8fafc}
 
 <!-- TEACHER MODAL -->
 <div class="overlay" id="tchrModal">
-  <div class="modal" style="max-width:720px">
+  <div class="modal" style="max-width:780px">
     <div class="modal-head">
       <div class="modal-title" id="tchrModalTitle">Add Teacher</div>
       <button class="modal-close" onclick="closeModal('tchrModal')">×</button>
     </div>
-    <div class="form-group"><label>Teacher Name</label><input type="text" id="tchrNameIn" placeholder="Full name"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-      <div class="form-group" style="margin-bottom:0">
-        <label>🔗 Teams Link</label>
-        <input type="text" id="tchrTeamsIn" placeholder="https://teams.microsoft.com/…">
-      </div>
-      <div class="form-group" style="margin-bottom:0;grid-column:1/-1">
-        <label>🥽 VR Codes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#94a3b8;font-size:.78rem"> — add one entry per class/session</span></label>
-        <div id="vrCodesContainer" style="display:flex;flex-direction:column;gap:6px;margin-top:6px"></div>
-        <button type="button" class="btn btn-outline btn-sm" onclick="addVrCodeRow()" style="margin-top:8px">+ Add VR Code</button>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label>📅 Schedule Template</label>
-        <select id="tchrTemplate">
-          <option value="">Default (Homeroom + Periods 1–6)</option>
-        </select>
-        <p style="font-size:.75rem;color:#64748b;margin-top:4px">Use for K–2nd grade teachers who follow a different daily schedule</p>
-  
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+      <div class="form-group" style="margin-bottom:0"><label>Teacher Name</label><input type="text" id="tchrNameIn" placeholder="Full name"></div>
+      <div class="form-group" style="margin-bottom:0"><label>Grade / Band</label><input type="text" id="tchrGradeIn" placeholder="e.g. 6th Grade"></div>
+      <div class="form-group" style="margin-bottom:0"><label>🔗 Teams Link</label><input type="text" id="tchrTeamsIn" placeholder="https://teams.microsoft.com/…"></div>
     </div>
-    </div>
-    <!-- Schedule grid: shown for default template, hidden for grade-band templates -->
-    <div id="schedGridWrapper" style="margin-top:16px">
-      <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">
-        ✅ Which periods does this teacher need coverage? <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#94a3b8">Check each period they teach Mon–Thu</span>
+    <div style="margin-top:8px">
+      <label style="display:flex;justify-content:space-between;align-items:center;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">
+        <span>📅 Teacher's Periods <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#94a3b8;font-size:.78rem"> — one row per class/period. Days = M, W, T, Th (or MTWTh for daily).</span></span>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addTchrPeriodRow()">+ Add Period</button>
       </label>
-      <div class="sched-grid" id="schedGrid"></div>
+      <div style="display:grid;grid-template-columns:70px 1fr 130px 90px 32px;gap:6px;padding:6px 10px;background:#f1f5f9;font-size:.7rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.04em;border-radius:6px 6px 0 0">
+        <div>ID</div><div>Label / Subject</div><div>Time</div><div>Days</div><div></div>
+      </div>
+      <div id="tchrPeriodRows" style="display:flex;flex-direction:column;gap:5px;padding:8px 10px;background:#f8fafc;border-radius:0 0 8px 8px;border:1px solid #e2e8f0;max-height:320px;overflow-y:auto"></div>
     </div>
-    <!-- Template periods preview: shown for grade-band templates -->
-    <div id="tmplPeriodsPreview" style="display:none;margin-top:16px">
-      <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">
-        Coverage Blocks (defined by template)
-      </label>
-      <div id="tmplPeriodsList" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-    </div>
-        <input type="hidden" id="tchrModalId">
+    <input type="hidden" id="tchrModalId">
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:14px;border-top:1px solid #f1f5f9">
       <button class="btn btn-outline" onclick="closeModal('tchrModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveTeacher()">Save Teacher</button>
@@ -698,110 +670,50 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
-<!-- TEMPLATE EDITOR MODAL -->
-<div class="overlay" id="tmplEditorModal">
-  <div class="modal" style="max-width:640px">
-    <div class="modal-head">
-      <div class="modal-title" id="tmplEditorTitle">Add Schedule Template</div>
-      <button class="modal-close" onclick="closeModal('tmplEditorModal')">×</button>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 140px;gap:12px;margin-bottom:16px">
-      <div class="form-group" style="margin:0">
-        <label>Template Name</label>
-        <input type="text" id="tmplName" placeholder="e.g. 3rd Grade">
-      </div>
-      <div class="form-group" style="margin:0">
-        <label>Grade Label <span style="font-weight:400;color:#94a3b8">(short badge)</span></label>
-        <input type="text" id="tmplGradeLabel" placeholder="e.g. 3rd">
-      </div>
-      <div class="form-group" style="margin:0">
-        <label>Color</label>
-        <select id="tmplColor">
-          <option value="#6366f1">Purple</option>
-          <option value="#10b981">Green</option>
-          <option value="#f59e0b">Amber</option>
-          <option value="#ef4444">Red</option>
-          <option value="#3b82f6">Blue</option>
-          <option value="#ec4899">Pink</option>
-          <option value="#14b8a6">Teal</option>
-          <option value="#f97316">Orange</option>
-        </select>
-      </div>
-    </div>
-    <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">
-      Coverage Blocks <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#94a3b8">— only include periods a sub would need to cover</span>
-    </label>
-    <div id="tmplPeriodRows" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
-    <button type="button" class="btn btn-outline btn-sm" onclick="addTmplPeriodRow()">+ Add Block</button>
-    <input type="hidden" id="tmplEditingId">
-    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:14px;border-top:1px solid #f1f5f9">
-      <button class="btn btn-outline" onclick="closeModal('tmplEditorModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveTemplateEdit()">Save Template</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
 //  SEED DATA  (imported from OptimaED_Sub_Coverage_Calendar_v1)
 // ═══════════════════════════════════════════════════════════════
+// Fallback period list (used only when a teacher has no periods defined)
 const PERIOD_DEFS=[
-  {id:'HR',label:'Homeroom',time:'8:00–8:25'},
-  {id:'P1',label:'Period 1',time:'8:25–9:15'},
-  {id:'P2',label:'Period 2',time:'9:25–10:15'},
-  {id:'P3',label:'Period 3',time:'10:25–11:15'},
-  {id:'P4',label:'Period 4',time:'11:25–12:15'},
-  {id:'P5',label:'Period 5',time:'1:00–1:50'},
-  {id:'P6',label:'Period 6',time:'2:00–2:50'},
+  {id:'HR',label:'Homeroom',time:'—'},
+  {id:'P1',label:'Period 1',time:'—'},
+  {id:'P2',label:'Period 2',time:'—'},
+  {id:'P3',label:'Period 3',time:'—'},
+  {id:'P4',label:'Period 4',time:'—'},
+  {id:'P5',label:'Period 5',time:'—'},
+  {id:'P6',label:'Period 6',time:'—'},
 ];
 
-// ── Schedule templates for grade-band variants ────────────────────
-const DEFAULT_SCHEDULE_TEMPLATES = [
-  {
-    id:'kg_1st', name:'Kindergarten & 1st Grade', gradeLabel:'K–1st',
-    color:'#6366f1',
-    periods:[
-      {id:'ELA',  label:'ELA / Circle',time:'9:00–10:00'},
-      {id:'MATH', label:'Math',        time:'10:10–10:50'},
-      {id:'SPEC', label:'Specials',    time:'11:10–11:30',note:'M/T: Music · W/Th: Art'},
-      {id:'CONT', label:'SS / Science',time:'11:30–12:00',note:'M/T: Social Studies · W/Th: Science'},
-    ]
-  },
-  {
-    id:'2nd', name:'2nd Grade', gradeLabel:'2nd',
-    color:'#10b981',
-    periods:[
-      {id:'ELA',  label:'ELA',         time:'8:20–9:20'},
-      {id:'MATH', label:'Math',        time:'9:30–10:30'},
-      {id:'SSCI', label:'SS / Science',time:'10:40–11:05',note:'M/W: Social Studies · T/Th: Science'},
-      {id:'SPEC', label:'Art / Music', time:'11:15–11:40',note:'M/W: Art · T/Th: Music'},
-    ]
-  }
-];
+// Map day-code (Mon/Tue/Wed/Thu) → letter used in a period's days string
+const DAY_LETTER={Mon:'M',Tue:'T',Wed:'W',Thu:'Th'};
 
-// Return period list for a given teacher (falls back to PERIOD_DEFS)
+// Return the periods a teacher runs (their own list, or fallback)
 function getTeacherPeriods(teacherName){
   if(!teacherName) return PERIOD_DEFS;
   const t=state.teachers.find(x=>x.name===teacherName);
-  if(!t?.scheduleTemplate) return PERIOD_DEFS;
-  const tmpl=(state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES).find(x=>x.id===t.scheduleTemplate);
-  return tmpl?.periods||PERIOD_DEFS;
+  if(!t||!Array.isArray(t.periods)||!t.periods.length) return PERIOD_DEFS;
+  return t.periods;
 }
 
-// Return template object for a teacher
-function getTeacherTemplate(teacherName){
-  if(!teacherName) return null;
-  const t=state.teachers.find(x=>x.name===teacherName);
-  if(!t?.scheduleTemplate) return null;
-  return (state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES).find(x=>x.id===t.scheduleTemplate)||null;
+// Filter a teacher's periods to those that run on the given day
+function getTeacherPeriodsForDay(teacherName, ds){
+  const periods=getTeacherPeriods(teacherName);
+  if(!ds) return periods;
+  const dow=dayOfWeek(ds); // 'Mon'|'Tue'|'Wed'|'Thu'|...
+  const letter=DAY_LETTER[dow];
+  if(!letter) return [];
+  return periods.filter(p=>!p.days || p.days.includes(letter));
 }
 
-// Build a blank coverage object for a teacher's template periods
+// Blank coverage object keyed by unique period IDs a teacher has
 function blankCoverage(teacherName){
   const periods=getTeacherPeriods(teacherName);
-  const cov={};periods.forEach(p=>{cov[p.id]=null;});
+  const cov={};
+  const seen=new Set();
+  periods.forEach(p=>{ if(!seen.has(p.id)){seen.add(p.id);cov[p.id]=null;} });
   return cov;
 }
 
@@ -825,20 +737,390 @@ const TIER_MAP={
 const TIER_LABELS={1:'T1 Full-time',2:'T2 Part-time',3:'T3 Regular',4:'T4 Occasional',5:'T5 Limited'};
 const TIER_CSS={1:'tier1',2:'tier2',3:'tier3',4:'tier4',5:'tier5'};
 
-const SEED_TEACHERS=[
-  'Abbey Mitchell','Alicia Pappalardo','Andrea Fertitta-Marquez','Annette English',
-  'Ashley Douglas','Carlos Fernandez','Corene Woods','Dani Fitzsimmons',
-  'Dawn Truncale','Dendi Moreno','Desiree Perez','Dominique Messer',
-  'Elizabeth Wittwer','Farah Helgerson','Hannah Hardy','Hollie Stiltner',
-  'Jacob Goodwin','James Foster','Jamie Ching','Jane Lynch','Janelle Diaz',
-  'Jesse Thompson','John Rosenbaum','Kathryn Ruholt','Keysha Resto',
-  'Laurie Coburn','Lee Thompson','Lyle Fitzsimmons','Maggie Polanco',
-  'Majda Praiz','Megan Loertscher','Melanny Alpizar','Monique Ames',
-  'Mrs. Craun','Nate Abel','Robert Reed','Sarah Stovall','Savanna Gill',
-  'Shelby Orlando','Sharon Morton','Steven Diaz','Tammy Shelton',
-  'Tatum Warner','Thalia Trussell','Tiffany Graves','Tina Arreola',
-  'Tracy Zumar','Travis Warner',
-].sort();
+// ── Per-teacher schedule seed data (extracted from Excel) ──
+const SEED_TEACHER_SCHEDULES = [
+  {name:"Abbey Mitchell", grade:"Grade 3", band:"G3", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P1", label:"ELA", subject:"ELA", time:"8:10\u20139:15", days:"MTWTh"},
+    {id:"P2", label:"Math", subject:"Math", time:"9:25\u201310:15", days:"MTWTh"},
+    {id:"P4", label:"Science M/W - Mitchell", subject:"Science M/W - Mitchell", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"Science T/Th - Lynch's class", subject:"Science T/Th - Lynch's class", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Alicia Pappalardo", grade:"1st Grade", band:"K1", periods:[
+    {id:"P1", label:"Small Group / 1-on-1", subject:"Small Group / 1-on-1", time:"8:00\u20139:00", days:"MTWTh"},
+    {id:"P2", label:"Circle / ELA", subject:"Circle / ELA", time:"9:00\u201310:00", days:"MTWTh"},
+    {id:"P3", label:"Math", subject:"Math", time:"10:10\u201310:50", days:"MTWTh"},
+    {id:"P4", label:"Music", subject:"Music", time:"11:10\u201311:30", days:"MW"},
+    {id:"P4", label:"Art", subject:"Art", time:"11:10\u201311:30", days:"TTh"},
+    {id:"P5", label:"Social Studies", subject:"Social Studies", time:"11:30\u201312:00", days:"MW"},
+    {id:"P5", label:"Science", subject:"Science", time:"11:30\u201312:00", days:"TTh"},
+  ]},
+  {name:"Alisha Kilburg", grade:"2nd Grade", band:"G2", periods:[
+    {id:"HR", label:"Morning Meeting", subject:"Morning Meeting", time:"8:00\u20138:20", days:"MTWTh"},
+    {id:"P1", label:"ELA", subject:"ELA", time:"8:20\u20139:20", days:"MTWTh"},
+    {id:"P2", label:"Math", subject:"Math", time:"9:30\u201310:30", days:"MTWTh"},
+    {id:"P3", label:"Social Studies", subject:"Social Studies", time:"10:40\u201311:05", days:"MW"},
+    {id:"P3", label:"Science", subject:"Science", time:"10:40\u201311:05", days:"TTh"},
+    {id:"P4", label:"Art", subject:"Art", time:"11:15\u201311:40", days:"MW"},
+    {id:"P4", label:"Music", subject:"Music", time:"11:15\u201311:40", days:"TTh"},
+  ]},
+  {name:"Melanny Alpizar", grade:"9-12", band:"HS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"9:00\u20139:25", days:"MTWTh"},
+    {id:"P1", label:"M/W Spanish 3 Honors - Alpizar", subject:"M/W Spanish 3 Honors - Alpizar", time:"9:25\u201310:15", days:"MW"},
+    {id:"P1", label:"T/Th Studio Art 2 - Yanik", subject:"T/Th Studio Art 2 - Yanik", time:"9:25\u201310:15", days:"TTh"},
+    {id:"P2", label:"English 3 - Marquez", subject:"English 3 - Marquez", time:"10:25\u201311:15", days:"MW"},
+    {id:"P2", label:"Honors Section", subject:"Honors Section", time:"10:25\u201311:15", days:"TTh"},
+    {id:"P4", label:"Physics - Goodwin", subject:"Physics - Goodwin", time:"1:00\u20131:50", days:"MW"},
+    {id:"P5", label:"US Gov/ Econ Honors - Hutton", subject:"US Gov/ Econ Honors - Hutton", time:"2:00\u20132:50", days:"MW"},
+    {id:"P6", label:"Algebra 2 - Loertscher", subject:"Algebra 2 - Loertscher", time:"3:00\u20133:50", days:"MW"},
+  ]},
+  {name:"Annette English", grade:"2nd Grade", band:"G2", periods:[
+    {id:"HR", label:"Morning Meeting", subject:"Morning Meeting", time:"8:00\u20138:20", days:"MTWTh"},
+    {id:"P1", label:"ELA", subject:"ELA", time:"8:20\u20139:20", days:"MTWTh"},
+    {id:"P2", label:"Math", subject:"Math", time:"9:30\u201310:30", days:"MTWTh"},
+    {id:"P3", label:"Social Studies", subject:"Social Studies", time:"10:40\u201311:05", days:"MW"},
+    {id:"P3", label:"Science", subject:"Science", time:"10:40\u201311:05", days:"TTh"},
+    {id:"P4", label:"Art", subject:"Art", time:"11:15\u201311:40", days:"MW"},
+    {id:"P4", label:"Music", subject:"Music", time:"11:15\u201311:40", days:"TTh"},
+  ]},
+  {name:"Ashley Douglas", grade:"2nd Grade", band:"G2", periods:[
+    {id:"HR", label:"Morning Meeting", subject:"Morning Meeting", time:"8:00\u20138:20", days:"MTWTh"},
+    {id:"P1", label:"ELA", subject:"ELA", time:"8:20\u20139:20", days:"MTWTh"},
+    {id:"P2", label:"Math", subject:"Math", time:"9:30\u201310:30", days:"MTWTh"},
+    {id:"P3", label:"Social Studies", subject:"Social Studies", time:"10:40\u201311:05", days:"MW"},
+    {id:"P3", label:"Science", subject:"Science", time:"10:40\u201311:05", days:"TTh"},
+    {id:"P4", label:"Art", subject:"Art", time:"11:15\u201311:40", days:"MW"},
+    {id:"P4", label:"Music", subject:"Music", time:"11:15\u201311:40", days:"TTh"},
+  ]},
+  {name:"Ashley Holowell", grade:"Kindergarten & 1st", band:"K1", periods:[
+    {id:"P1", label:"Small Group / 1-on-1", subject:"Small Group / 1-on-1", time:"8:00\u20139:00", days:"MTWTh"},
+    {id:"P2", label:"Circle / ELA", subject:"Circle / ELA", time:"9:00\u201310:00", days:"MTWTh"},
+    {id:"P3", label:"Math", subject:"Math", time:"10:10\u201310:50", days:"MTWTh"},
+    {id:"P4", label:"Music", subject:"Music", time:"11:10\u201311:30", days:"MW"},
+    {id:"P4", label:"Art", subject:"Art", time:"11:10\u201311:30", days:"TTh"},
+    {id:"P5", label:"Social Studies", subject:"Social Studies", time:"11:30\u201312:00", days:"MW"},
+    {id:"P5", label:"Science", subject:"Science", time:"11:30\u201312:00", days:"TTh"},
+  ]},
+  {name:"Brandon Russell", grade:"4th Grade", band:"G45", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P1", label:"Math 402", subject:"Math 402", time:"8:10\u20139:15", days:"MTWTh"},
+    {id:"P3", label:"Math 401", subject:"Math 401", time:"10:25\u201311:15", days:"MTWTh"},
+    {id:"P4", label:"Science M/W 402", subject:"Science M/W 402", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"Science T/Th 401", subject:"Science T/Th 401", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Laurie Coburn", grade:"8th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"M/W History: Coburn", subject:"M/W History: Coburn", time:"8:25\u20139:15", days:"MW"},
+    {id:"P1", label:"T/Th Science - Cole", subject:"T/Th Science - Cole", time:"8:25\u20139:15", days:"TTh"},
+    {id:"P2", label:"ELA 8-1 - Mcguire", subject:"ELA 8-1 - Mcguire", time:"9:25\u201310:15", days:"MW"},
+    {id:"P3", label:"Math 8-1 Diaz", subject:"Math 8-1 Diaz", time:"10:25\u201311:15", days:"MW"},
+    {id:"P4", label:"M/W Art - Truncale", subject:"M/W Art - Truncale", time:"11:25\u201312:15", days:"MW"},
+  ]},
+  {name:"Corene Woods", grade:"Kindergarten & 1st", band:"K1", periods:[
+    {id:"P1", label:"Small Group / 1-on-1", subject:"Small Group / 1-on-1", time:"8:00\u20139:00", days:"MTWTh"},
+    {id:"P2", label:"Circle / ELA", subject:"Circle / ELA", time:"9:00\u201310:00", days:"MTWTh"},
+    {id:"P3", label:"Math", subject:"Math", time:"10:10\u201310:50", days:"MTWTh"},
+    {id:"P4", label:"Music", subject:"Music", time:"11:10\u201311:30", days:"MW"},
+    {id:"P4", label:"Art", subject:"Art", time:"11:10\u201311:30", days:"TTh"},
+    {id:"P5", label:"Social Studies", subject:"Social Studies", time:"11:30\u201312:00", days:"MW"},
+    {id:"P5", label:"Science", subject:"Science", time:"11:30\u201312:00", days:"TTh"},
+  ]},
+  {name:"Dani Fitzsimmons", grade:"Kindergarten & 1st", band:"K1", periods:[
+    {id:"P1", label:"Small Group / 1-on-1", subject:"Small Group / 1-on-1", time:"8:00\u20139:00", days:"MTWTh"},
+    {id:"P2", label:"Circle / ELA", subject:"Circle / ELA", time:"9:00\u201310:00", days:"MTWTh"},
+    {id:"P3", label:"Math", subject:"Math", time:"10:10\u201310:50", days:"MTWTh"},
+    {id:"P4", label:"Music", subject:"Music", time:"11:10\u201311:30", days:"MW"},
+    {id:"P4", label:"Art", subject:"Art", time:"11:10\u201311:30", days:"TTh"},
+    {id:"P5", label:"Social Studies", subject:"Social Studies", time:"11:30\u201312:00", days:"MW"},
+    {id:"P5", label:"Science", subject:"Science", time:"11:30\u201312:00", days:"TTh"},
+  ]},
+  {name:"Desiree Perez", grade:"6th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"M/W Science - Perez", subject:"M/W Science - Perez", time:"8:25\u20139:15", days:"MW"},
+    {id:"P1", label:"T/Th History - Graves", subject:"T/Th History - Graves", time:"8:25\u20139:15", days:"TTh"},
+    {id:"P2", label:"ELA 6-2", subject:"ELA 6-2", time:"9:25\u201310:15", days:"MW"},
+    {id:"P3", label:"Math 6-2", subject:"Math 6-2", time:"10:25\u201311:15", days:"MW"},
+  ]},
+  {name:"Carlos Fernandez", grade:"8th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"M/W Art - Truncale", subject:"M/W Art - Truncale", time:"8:25\u20139:15", days:"MW"},
+    {id:"P1", label:"T/Th Music Theory 2 - Fernandez", subject:"T/Th Music Theory 2 - Fernandez", time:"8:25\u20139:15", days:"TTh"},
+    {id:"P2", label:"M/W History: Coburn", subject:"M/W History: Coburn", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"T/Th Science - Cole", subject:"T/Th Science - Cole", time:"9:25\u201310:15", days:"TTh"},
+    {id:"P3", label:"ELA 8-1 - Mcguire", subject:"ELA 8-1 - Mcguire", time:"10:25\u201311:15", days:"MW"},
+    {id:"P4", label:"Math 8-1 Diaz", subject:"Math 8-1 Diaz", time:"11:25\u201312:15", days:"MW"},
+  ]},
+  {name:"Hollie Stiltner", grade:"7th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"ELA 7-2 - Stiltner", subject:"ELA 7-2 - Stiltner", time:"8:25\u20139:15", days:"MW"},
+    {id:"P2", label:"Math 7-2 - Vonn", subject:"Math 7-2 - Vonn", time:"9:25\u201310:15", days:"MW"},
+    {id:"P3", label:"T/Th Music Theory 2 - Fernandez", subject:"T/Th Music Theory 2 - Fernandez", time:"10:25\u201311:15", days:"TTh"},
+    {id:"P4", label:"M/W Science - Orlando", subject:"M/W Science - Orlando", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"T/Th History - Ouzts", subject:"T/Th History - Ouzts", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Stacie Hutton", grade:"9-12", band:"HS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"9:00\u20139:25", days:"MTWTh"},
+    {id:"P1", label:"English 3 - Marquez", subject:"English 3 - Marquez", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"Pre-Cal - can combine with 121 - Seaford", subject:"Pre-Cal - can combine with 121 - Seaford", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"Physics - Goodwin", subject:"Physics - Goodwin", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"US Gov/ Econ Honors - Hutton", subject:"US Gov/ Econ Honors - Hutton", time:"1:00\u20131:50", days:"MW"},
+    {id:"P5", label:"M/W Digital Art/Creative Photo - AMES", subject:"M/W Digital Art/Creative Photo - AMES", time:"2:00\u20132:50", days:"MW"},
+    {id:"P5", label:"M/W Spanish 3 Honors - Alpizar", subject:"M/W Spanish 3 Honors - Alpizar", time:"2:00\u20132:50", days:"TTh"},
+    {id:"P6", label:"M/T Music of the World - Fernandez", subject:"M/T Music of the World - Fernandez", time:"3:00\u20133:50", days:"MW"},
+  ]},
+  {name:"Jacob Goodwin", grade:"9-12", band:"HS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"9:00\u20139:25", days:"MTWTh"},
+    {id:"P2", label:"Biology - Payne", subject:"Biology - Payne", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"World History - Taylor", subject:"World History - Taylor", time:"11:25\u201312:15", days:"MW"},
+    {id:"P5", label:"English 1 -Trussell", subject:"English 1 -Trussell", time:"2:00\u20132:50", days:"MW"},
+    {id:"P6", label:"Algebra 1 - Silva", subject:"Algebra 1 - Silva", time:"3:00\u20133:50", days:"MW"},
+  ]},
+  {name:"Jane Lynch", grade:"Grade 3", band:"G3", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P1", label:"ELA", subject:"ELA", time:"8:10\u20139:15", days:"MTWTh"},
+    {id:"P2", label:"Math", subject:"Math", time:"9:25\u201310:15", days:"MTWTh"},
+    {id:"P4", label:"Social Studies M/W - Lynch", subject:"Social Studies M/W - Lynch", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"Social Studies T/Th- Mitchell's class", subject:"Social Studies T/Th- Mitchell's class", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Kathryn Ruholt", grade:"6th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"ELA 6-1 Ruholt", subject:"ELA 6-1 Ruholt", time:"8:25\u20139:15", days:"MW"},
+    {id:"P2", label:"Math 6-1 - Mc-Brooks", subject:"Math 6-1 - Mc-Brooks", time:"9:25\u201310:15", days:"MW"},
+    {id:"P3", label:"M/W Music - Fernandez", subject:"M/W Music - Fernandez", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"T/Th - Art - Murray", subject:"T/Th - Art - Murray", time:"10:25\u201311:15", days:"TTh"},
+    {id:"P4", label:"M/W History - Graves", subject:"M/W History - Graves", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"T/Th Science - Perez", subject:"T/Th Science - Perez", time:"11:25\u201312:15", days:"TTh"},
+    {id:"P5", label:"M/W Beginning Latin - Helgerson", subject:"M/W Beginning Latin - Helgerson", time:"1:00\u20131:50", days:"MW"},
+    {id:"P5", label:"T/Th Beginning Latin - Helgerson", subject:"T/Th Beginning Latin - Helgerson", time:"1:00\u20131:50", days:"TTh"},
+  ]},
+  {name:"Kimberly Chinn", grade:"5th Grade", band:"G45", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P1", label:"ELA", subject:"ELA", time:"8:10\u20139:15", days:"MTWTh"},
+    {id:"P3", label:"Math", subject:"Math", time:"10:25\u201311:15", days:"MTWTh"},
+    {id:"P4", label:"Science M/W", subject:"Science M/W", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"History M/W", subject:"History M/W", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Kristina Brooks", grade:"Grade 3", band:"G3", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P1", label:"ELA", subject:"ELA", time:"8:10\u20139:15", days:"MTWTh"},
+    {id:"P2", label:"Math", subject:"Math", time:"9:25\u201310:15", days:"MTWTh"},
+    {id:"P3", label:"Science", subject:"Science", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"Social Studies", subject:"Social Studies", time:"10:25\u201311:15", days:"TTh"},
+  ]},
+  {name:"Linda Raquel-Vazquez", grade:"5th Grade", band:"G45", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P2", label:"Math", subject:"Math", time:"9:25\u201310:15", days:"MTWTh"},
+    {id:"P3", label:"ELA", subject:"ELA", time:"10:25\u201311:15", days:"MTWTh"},
+    {id:"P4", label:"Science M/W", subject:"Science M/W", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"History T/Th", subject:"History T/Th", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Andrea Fertitta-Marquez", grade:"9-12", band:"HS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"9:00\u20139:25", days:"MTWTh"},
+    {id:"P1", label:"M/W Art History and Criticism - Ames", subject:"M/W Art History and Criticism - Ames", time:"9:25\u201310:15", days:"MW"},
+    {id:"P1", label:"T/Th Spanish 2- Alpizar", subject:"T/Th Spanish 2- Alpizar", time:"9:25\u201310:15", days:"TTh"},
+    {id:"P2", label:"T/Th Music of the World - Fernandez", subject:"T/Th Music of the World - Fernandez", time:"10:25\u201311:15", days:"TTh"},
+    {id:"P3", label:"English Honors 2 - Marquez", subject:"English Honors 2 - Marquez", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"Geometry - Loertscher", subject:"Geometry - Loertscher", time:"1:00\u20131:50", days:"MW"},
+    {id:"P5", label:"Chemistry - Dickerson", subject:"Chemistry - Dickerson", time:"2:00\u20132:50", days:"MW"},
+    {id:"P6", label:"US History - Taylor", subject:"US History - Taylor", time:"3:00\u20133:50", days:"MW"},
+  ]},
+  {name:"Mc-Brooks", grade:"6th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"Math 6-1 - Mc-Brooks", subject:"Math 6-1 - Mc-Brooks", time:"8:25\u20139:15", days:"MW"},
+    {id:"P2", label:"music can join 76", subject:"music can join 76", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"T/Th - Art - Murray", subject:"T/Th - Art - Murray", time:"9:25\u201310:15", days:"TTh"},
+    {id:"P3", label:"M/W History - Graves", subject:"M/W History - Graves", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"T/Th Science - Perez", subject:"T/Th Science - Perez", time:"10:25\u201311:15", days:"TTh"},
+    {id:"P4", label:"ELA 6-1 Ruholt", subject:"ELA 6-1 Ruholt", time:"11:25\u201312:15", days:"MW"},
+  ]},
+  {name:"Maggie Mcguire", grade:"8th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"ELA 8-1 - Mcguire", subject:"ELA 8-1 - Mcguire", time:"8:25\u20139:15", days:"MW"},
+    {id:"P2", label:"Math 8-1 Diaz", subject:"Math 8-1 Diaz", time:"9:25\u201310:15", days:"MW"},
+    {id:"P3", label:"M/W Art - Truncale", subject:"M/W Art - Truncale", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"T/Th Spanish Intermediate - Moreno", subject:"T/Th Spanish Intermediate - Moreno", time:"10:25\u201311:15", days:"TTh"},
+    {id:"P4", label:"M/W History: Coburn", subject:"M/W History: Coburn", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"T/Th Science - Cole", subject:"T/Th Science - Cole", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Dominique Messer", grade:"7th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"ELA 7-1 - Messer", subject:"ELA 7-1 - Messer", time:"8:25\u20139:15", days:"MW"},
+    {id:"P2", label:"Math 7 - Warner", subject:"Math 7 - Warner", time:"9:25\u201310:15", days:"MW"},
+    {id:"P3", label:"M/W Spanish Beginning - Moreno", subject:"M/W Spanish Beginning - Moreno", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"T/Th - Art - Truncale", subject:"T/Th - Art - Truncale", time:"10:25\u201311:15", days:"TTh"},
+    {id:"P4", label:"M/W History - Ouzts", subject:"M/W History - Ouzts", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"T/Th Science - Orlando", subject:"T/Th Science - Orlando", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Dendi Moreno", grade:"7th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"M/W Spanish Beginning - Moreno", subject:"M/W Spanish Beginning - Moreno", time:"8:25\u20139:15", days:"MW"},
+    {id:"P1", label:"T/Th - Art - Truncale", subject:"T/Th - Art - Truncale", time:"8:25\u20139:15", days:"TTh"},
+    {id:"P2", label:"M/W History - Ouzts", subject:"M/W History - Ouzts", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"T/Th Science - Orlando", subject:"T/Th Science - Orlando", time:"9:25\u201310:15", days:"TTh"},
+    {id:"P3", label:"ELA 7-1 - Messer", subject:"ELA 7-1 - Messer", time:"10:25\u201311:15", days:"MW"},
+    {id:"P4", label:"Math 7 - Warner", subject:"Math 7 - Warner", time:"11:25\u201312:15", days:"MW"},
+  ]},
+  {name:"Valencia Murray", grade:"6th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"M/W Music - Fernandez", subject:"M/W Music - Fernandez", time:"8:25\u20139:15", days:"MW"},
+    {id:"P1", label:"T/Th - Art - Murray", subject:"T/Th - Art - Murray", time:"8:25\u20139:15", days:"TTh"},
+    {id:"P2", label:"M/W History - Graves", subject:"M/W History - Graves", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"T/Th Science - Perez", subject:"T/Th Science - Perez", time:"9:25\u201310:15", days:"TTh"},
+    {id:"P3", label:"ELA 6-1 Ruholt", subject:"ELA 6-1 Ruholt", time:"10:25\u201311:15", days:"MW"},
+    {id:"P4", label:"Math 6-1 - Mc-Brooks", subject:"Math 6-1 - Mc-Brooks", time:"11:25\u201312:15", days:"MW"},
+  ]},
+  {name:"Nichole Carr", grade:"4th Grade", band:"G45", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P1", label:"ELA", subject:"ELA", time:"8:10\u20139:15", days:"MTWTh"},
+    {id:"P2", label:"Math", subject:"Math", time:"9:25\u201310:15", days:"MTWTh"},
+    {id:"P3", label:"History M/W", subject:"History M/W", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"Science T/Th", subject:"Science T/Th", time:"10:25\u201311:15", days:"TTh"},
+  ]},
+  {name:"Jerrod Payne", grade:"9-12", band:"HS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"9:00\u20139:25", days:"MTWTh"},
+    {id:"P1", label:"Biology - Payne", subject:"Biology - Payne", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"World History - Taylor", subject:"World History - Taylor", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"M/W Spanish 1 - Alpizar", subject:"M/W Spanish 1 - Alpizar", time:"11:25\u201312:15", days:"MW"},
+    {id:"P3", label:"T/Th 2D Studio Art 1", subject:"T/Th 2D Studio Art 1", time:"11:25\u201312:15", days:"TTh"},
+    {id:"P4", label:"English 1 - Trussell", subject:"English 1 - Trussell", time:"1:00\u20131:50", days:"MW"},
+    {id:"P5", label:"Algebra 1 - Silva", subject:"Algebra 1 - Silva", time:"2:00\u20132:50", days:"MW"},
+  ]},
+  {name:"Maggie Polanco", grade:"9-12", band:"HS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"9:00\u20139:25", days:"MTWTh"},
+    {id:"P1", label:"English 2 -Polanco", subject:"English 2 -Polanco", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"Geometry - Loertscher", subject:"Geometry - Loertscher", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"Chemistry - Dickerson", subject:"Chemistry - Dickerson", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"US History - Taylor", subject:"US History - Taylor", time:"1:00\u20131:50", days:"MW"},
+    {id:"P5", label:"T/Th Spanish 2 - Alpizar", subject:"T/Th Spanish 2 - Alpizar", time:"2:00\u20132:50", days:"TTh"},
+    {id:"P6", label:"M/T Music of the World - Fernandez", subject:"M/T Music of the World - Fernandez", time:"3:00\u20133:50", days:"MW"},
+  ]},
+  {name:"Rachel Horn", grade:"5th Grade", band:"G45", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P2", label:"ELA", subject:"ELA", time:"9:25\u201310:15", days:"MTWTh"},
+    {id:"P3", label:"Math", subject:"Math", time:"10:25\u201311:15", days:"MTWTh"},
+    {id:"P4", label:"Science", subject:"Science", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"History", subject:"History", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Savanna Silva", grade:"9-12", band:"HS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"9:00\u20139:25", days:"MTWTh"},
+    {id:"P2", label:"English 1 - Trussell", subject:"English 1 - Trussell", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"Algebra 1 - Silva", subject:"Algebra 1 - Silva", time:"11:25\u201312:15", days:"MW"},
+    {id:"P3", label:"8th grade Honors Sec 83", subject:"8th grade Honors Sec 83", time:"11:25\u201312:15", days:"TTh"},
+    {id:"P4", label:"Biology - Payne", subject:"Biology - Payne", time:"1:00\u20131:50", days:"MW"},
+    {id:"P5", label:"World History - Taylor", subject:"World History - Taylor", time:"2:00\u20132:50", days:"MW"},
+    {id:"P6", label:"M/W Spanish 1 - Moreno", subject:"M/W Spanish 1 - Moreno", time:"3:00\u20133:50", days:"MW"},
+    {id:"P6", label:"T/Th 2D Studio Art 1- Yanik", subject:"T/Th 2D Studio Art 1- Yanik", time:"3:00\u20133:50", days:"TTh"},
+  ]},
+  {name:"Shari Dickerson", grade:"9-12", band:"HS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"9:00\u20139:25", days:"MTWTh"},
+    {id:"P1", label:"Chemistry - Dickerson", subject:"Chemistry - Dickerson", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"English 2 - Polanco", subject:"English 2 - Polanco", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"Geometry - Loertscher", subject:"Geometry - Loertscher", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"M/W Art History and Criticism - Ames", subject:"M/W Art History and Criticism - Ames", time:"1:00\u20131:50", days:"MW"},
+    {id:"P5", label:"US History - Taylor", subject:"US History - Taylor", time:"2:00\u20132:50", days:"MW"},
+    {id:"P6", label:"T/Th Spanish 2 - Moreno", subject:"T/Th Spanish 2 - Moreno", time:"3:00\u20133:50", days:"TTh"},
+  ]},
+  {name:"Shelby Orlando", grade:"7th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"M/W History - Ouzts", subject:"M/W History - Ouzts", time:"8:25\u20139:15", days:"MW"},
+    {id:"P1", label:"T/Th Science - Orlando", subject:"T/Th Science - Orlando", time:"8:25\u20139:15", days:"TTh"},
+    {id:"P2", label:"ELA 7-1 - Messer", subject:"ELA 7-1 - Messer", time:"9:25\u201310:15", days:"MW"},
+    {id:"P3", label:"Math 7 - Warner", subject:"Math 7 - Warner", time:"10:25\u201311:15", days:"MW"},
+    {id:"P4", label:"M/W Spanish Beginning - Moreno", subject:"M/W Spanish Beginning - Moreno", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"T/Th - Art - Truncale", subject:"T/Th - Art - Truncale", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Tatum Warner", grade:"5th Grade", band:"G45", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P1", label:"ELA", subject:"ELA", time:"8:10\u20139:15", days:"MTWTh"},
+    {id:"P2", label:"Math", subject:"Math", time:"9:25\u201310:15", days:"MTWTh"},
+    {id:"P3", label:"History", subject:"History", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"Science", subject:"Science", time:"10:25\u201311:15", days:"TTh"},
+  ]},
+  {name:"Joel Taylor", grade:"9-12", band:"HS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"9:00\u20139:25", days:"MTWTh"},
+    {id:"P1", label:"World History - Taylor", subject:"World History - Taylor", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"M/W Spanish 1 - Alpizar", subject:"M/W Spanish 1 - Alpizar", time:"10:25\u201311:15", days:"MW"},
+    {id:"P2", label:"T/Th 2D Studio Art 1- Yanik", subject:"T/Th 2D Studio Art 1- Yanik", time:"10:25\u201311:15", days:"TTh"},
+    {id:"P3", label:"English 1 - Trussell", subject:"English 1 - Trussell", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"Algebra 1 - Silva", subject:"Algebra 1 - Silva", time:"1:00\u20131:50", days:"MW"},
+    {id:"P5", label:"Biology - Payne", subject:"Biology - Payne", time:"2:00\u20132:50", days:"MW"},
+  ]},
+  {name:"Thalia Trussell", grade:"9-12", band:"HS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"9:00\u20139:25", days:"MTWTh"},
+    {id:"P1", label:"English 1 - Trussell", subject:"English 1 - Trussell", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"Algebra 1 - Silva", subject:"Algebra 1 - Silva", time:"10:25\u201311:15", days:"MW"},
+    {id:"P2", label:"8th Grade Honors Sec. 82/86", subject:"8th Grade Honors Sec. 82/86", time:"10:25\u201311:15", days:"TTh"},
+    {id:"P3", label:"Biology - Payne", subject:"Biology - Payne", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"World History - Taylor", subject:"World History - Taylor", time:"1:00\u20131:50", days:"MW"},
+    {id:"P5", label:"NO M/W offering", subject:"NO M/W offering", time:"2:00\u20132:50", days:"MW"},
+    {id:"P5", label:"T/Th 2D Studio Art 1 - Yanik", subject:"T/Th 2D Studio Art 1 - Yanik", time:"2:00\u20132:50", days:"TTh"},
+    {id:"P6", label:"T/Th Music of the World - Fernandez", subject:"T/Th Music of the World - Fernandez", time:"3:00\u20133:50", days:"MW"},
+  ]},
+  {name:"Tiffany Graves", grade:"6th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"M/W History - Graves", subject:"M/W History - Graves", time:"8:25\u20139:15", days:"MW"},
+    {id:"P1", label:"T/Th Science - Perez", subject:"T/Th Science - Perez", time:"8:25\u20139:15", days:"TTh"},
+    {id:"P2", label:"ELA 6-1 Ruholt", subject:"ELA 6-1 Ruholt", time:"9:25\u201310:15", days:"MW"},
+    {id:"P3", label:"Math 6-1 - Shelton", subject:"Math 6-1 - Shelton", time:"10:25\u201311:15", days:"MW"},
+    {id:"P4", label:"M/W Music - Fernandez", subject:"M/W Music - Fernandez", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"T/Th - Art - Murray", subject:"T/Th - Art - Murray", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Tina Arreola", grade:"4th Grade", band:"G45", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P1", label:"ELA", subject:"ELA", time:"8:10\u20139:15", days:"MTWTh"},
+    {id:"P2", label:"Math", subject:"Math", time:"9:25\u201310:15", days:"MTWTh"},
+    {id:"P3", label:"History M/W", subject:"History M/W", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"Science T/Th", subject:"Science T/Th", time:"10:25\u201311:15", days:"TTh"},
+  ]},
+  {name:"Tracy Zumar", grade:"4th Grade", band:"G45", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:10", days:"MTWTh"},
+    {id:"P1", label:"ELA 401", subject:"ELA 401", time:"8:10\u20139:15", days:"MTWTh"},
+    {id:"P3", label:"ELA 402", subject:"ELA 402", time:"10:25\u201311:15", days:"MTWTh"},
+    {id:"P4", label:"History M/W 401", subject:"History M/W 401", time:"11:25\u201312:15", days:"MW"},
+    {id:"P4", label:"History T/Th 402", subject:"History T/Th 402", time:"11:25\u201312:15", days:"TTh"},
+  ]},
+  {name:"Dawn Truncale", grade:"7th Grade", band:"MS", periods:[
+    {id:"HR", label:"Homeroom", subject:"Homeroom", time:"8:00\u20138:25", days:"MTWTh"},
+    {id:"P1", label:"Math 7 - Warner", subject:"Math 7 - Warner", time:"8:25\u20139:15", days:"MW"},
+    {id:"P2", label:"M/W Music Theory 2 - Fernandez", subject:"M/W Music Theory 2 - Fernandez", time:"9:25\u201310:15", days:"MW"},
+    {id:"P2", label:"T/Th - Art - Truncale", subject:"T/Th - Art - Truncale", time:"9:25\u201310:15", days:"TTh"},
+    {id:"P3", label:"M/W History - Ouzts", subject:"M/W History - Ouzts", time:"10:25\u201311:15", days:"MW"},
+    {id:"P3", label:"T/Th Science - Orlando", subject:"T/Th Science - Orlando", time:"10:25\u201311:15", days:"TTh"},
+    {id:"P4", label:"ELA 7-1 - Messer", subject:"ELA 7-1 - Messer", time:"11:25\u201312:15", days:"MW"},
+    {id:"P5", label:"T/Th Spanish Beginning - Moreno", subject:"T/Th Spanish Beginning - Moreno", time:"1:00\u20131:50", days:"TTh"},
+  ]},
+];
+// 41 teachers
+
+
+const _SEEDED_NAMES = SEED_TEACHER_SCHEDULES.map(t=>t.name);
+// Non-scheduled teachers (specialists, aides, other names from prior roster)
+const SEED_UNSCHEDULED_TEACHERS = [
+  'Elizabeth Wittwer',
+  'Farah Helgerson',
+  'Hannah Hardy',
+  'James Foster',
+  'Jamie Ching',
+  'Janelle Diaz',
+  'Jesse Thompson',
+  'John Rosenbaum',
+  'Keysha Resto',
+  'Lee Thompson',
+  'Lyle Fitzsimmons',
+  'Majda Praiz',
+  'Megan Loertscher',
+  'Monique Ames',
+  'Mrs. Craun',
+  'Nate Abel',
+  'Robert Reed',
+  'Sarah Stovall',
+  'Savanna Gill',
+  'Sharon Morton',
+  'Steven Diaz',
+  'Tammy Shelton',
+  'Travis Warner'
+];
+const SEED_TEACHERS = [..._SEEDED_NAMES, ...SEED_UNSCHEDULED_TEACHERS].sort();
 
 // Format: [date, [[teacher,HR,P1,P2,P3,P4,P5,P6],...], notes]
 const SEED_ROSTER=[
@@ -1003,14 +1285,27 @@ let fbSaveTimer = null;
 let fbApplyingRemote = false; // prevents echo loop
 
 function buildDefault(){
-  const teachers = SEED_TEACHERS.map((name,i)=>({id:'t'+i,name,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]},teamsLink:'',vrId:'',vrCodes:[],scheduleTemplate:null}));
+  // Build teachers: seeded ones with their periods, plus unscheduled names with empty periods
+  const seededMap = {};
+  SEED_TEACHER_SCHEDULES.forEach(s=>{ seededMap[s.name]=s; });
+  const teachers = SEED_TEACHERS.map((name,i)=>{
+    const seed = seededMap[name];
+    return {
+      id:'t'+i,
+      name,
+      grade: seed?.grade || '',
+      band: seed?.band || '',
+      periods: seed ? JSON.parse(JSON.stringify(seed.periods)) : [],
+      teamsLink:''
+    };
+  });
   const subs = SEED_SUBS.map((name,i)=>({id:'s'+i,name,tier:TIER_MAP[name]||5,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]}}));
   const roster={};
   for(const [d,abs,notes] of SEED_ROSTER){
     roster[d]={absences:abs.map(a=>({teacher:a[0],coverage:{HR:a[1]||null,P1:a[2]||null,P2:a[3]||null,P3:a[4]||null,P4:a[5]||null,P5:a[6]||null,P6:a[7]||null}})),notes:notes||''};
   }
   return {teachers,subs,roster,holidays:[...SEED_HOLIDAYS],
-    settings:{schoolName:'OptimaED',yearStart:'2025-08-13',yearEnd:'2026-05-28',scheduleTemplates:[...DEFAULT_SCHEDULE_TEMPLATES]},
+    settings:{schoolName:'OptimaED',yearStart:'2026-08-12',yearEnd:'2027-05-28'},
     links:[],
     longTermAssignments:[],
     archivedYears:{}};
@@ -1040,16 +1335,24 @@ function toArr(v, fallback){
 
 function normalizeState(s){
   if(!s||typeof s!=='object') return buildDefault();
+  const seededMap = {};
+  SEED_TEACHER_SCHEDULES.forEach(sc=>{ seededMap[sc.name]=sc; });
   // Teachers
-  s.teachers=toArr(s.teachers).map(t=>({
-    id:t.id||'t'+Math.random(),name:t.name||'',
-    teamsLink:t.teamsLink||'',vrId:t.vrId||'',
-    scheduleTemplate:t.scheduleTemplate||null,periodGrades:t.periodGrades||{},periodSubjects:t.periodSubjects||{},vrCodes:toArr(t.vrCodes,t.vrId?[{desc:'',code:t.vrId}]:[]),
-    schedule:{
-      Mon:toArr(t.schedule?.Mon),Tue:toArr(t.schedule?.Tue),
-      Wed:toArr(t.schedule?.Wed),Thu:toArr(t.schedule?.Thu)
+  s.teachers=toArr(s.teachers).map(t=>{
+    let periods = toArr(t.periods, null);
+    // If no periods stored but we have a seed for this name, hydrate from seed
+    if((!periods||!periods.length) && seededMap[t.name]){
+      periods = JSON.parse(JSON.stringify(seededMap[t.name].periods));
     }
-  }));
+    return {
+      id:t.id||'t'+Math.random(),
+      name:t.name||'',
+      grade:t.grade||(seededMap[t.name]?.grade||''),
+      band:t.band||(seededMap[t.name]?.band||''),
+      periods: periods||[],
+      teamsLink:t.teamsLink||''
+    };
+  });
   // Subs
   s.subs=toArr(s.subs).map(sub=>({
     id:sub.id||'s'+Math.random(),name:sub.name||'',
@@ -1059,49 +1362,32 @@ function normalizeState(s){
       Wed:toArr(sub.schedule?.Wed),Thu:toArr(sub.schedule?.Thu)
     }
   }));
-  // If subs list is empty (first load with no seed data pushed yet), re-seed it
   if(s.subs.length===0){
     s.subs=SEED_SUBS.map((name,i)=>({id:'s'+i,name,tier:TIER_MAP[name]||5,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]}}));
   }
   if(s.teachers.length===0){
-    s.teachers=SEED_TEACHERS.map((name,i)=>({id:'t'+i,name,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]},teamsLink:'',vrId:'',vrCodes:[],scheduleTemplate:null}));
+    s.teachers=buildDefault().teachers;
   }
-  // Holidays & links
   s.holidays=toArr(s.holidays,[...SEED_HOLIDAYS]);
-  s.links=toArr(s.links,[{label:'Teams Links',url:''},{label:'VR Session IDs',url:''}]);
-  // Roster entries
+  s.links=toArr(s.links,[]);
   if(s.roster&&typeof s.roster==='object'){
     for(const date of Object.keys(s.roster)){
       const day=s.roster[date];
       if(!day||typeof day!=='object'){delete s.roster[date];continue;}
       day.absences=toArr(day.absences).map(abs=>({
         teacher:abs.teacher||'',
-        coverage:{
-          HR:abs.coverage?.HR||null,P1:abs.coverage?.P1||null,P2:abs.coverage?.P2||null,
-          P3:abs.coverage?.P3||null,P4:abs.coverage?.P4||null,P5:abs.coverage?.P5||null,
-          P6:abs.coverage?.P6||null
-        }
+        coverage:abs.coverage&&typeof abs.coverage==='object'?abs.coverage:{}
       }));
       day.notes=day.notes||'';
     }
   } else {
     s.roster={};
   }
-  // Settings
   if(!s.settings||typeof s.settings!=='object'){
-    s.settings={schoolName:'OptimaED',yearStart:'2025-08-13',yearEnd:'2026-05-28',scheduleTemplates:[...DEFAULT_SCHEDULE_TEMPLATES]};
+    s.settings={schoolName:'OptimaED',yearStart:'2026-08-12',yearEnd:'2027-05-28'};
   }
-  // Convert scheduleTemplates from Firebase object back to array (Firebase converts arrays to objects)
-  s.settings.scheduleTemplates=toArr(s.settings.scheduleTemplates,null)||[...DEFAULT_SCHEDULE_TEMPLATES];
-  // Also normalise each template's periods array
-  s.settings.scheduleTemplates.forEach(tm=>{
-    if(tm&&!Array.isArray(tm.periods))tm.periods=toArr(tm.periods,[]);
-  });
-  // Long-term assignments
   s.longTermAssignments=toArr(s.longTermAssignments,[]);
-  // Archived years (object keyed by year label)
   if(!s.archivedYears||typeof s.archivedYears!=='object') s.archivedYears={};
-  // Normalize each archived year's roster if present
   for(const yr of Object.keys(s.archivedYears)){
     const ay=s.archivedYears[yr];
     if(ay&&ay.roster&&typeof ay.roster==='object'){
@@ -1206,28 +1492,29 @@ function saveState(){
   }
 
   setSyncStatus('saving');
-  // Block the real-time listener from overwriting local edits while
-  // a save is pending — this prevents the race condition where the
-  // listener fires during the debounce window and wipes unsaved changes.
-  fbApplyingRemote=true;
   clearTimeout(fbSaveTimer);
   fbSaveTimer=setTimeout(()=>{
-    // Strip any undefined values (Firebase rejects them) via JSON round-trip
+    // Only block the listener during the actual write, not during the debounce.
+    // This prevents remote updates from being silently dropped while the user is typing.
+    fbApplyingRemote=true;
     let cleanState;
     try{ cleanState=JSON.parse(JSON.stringify(state)); } catch(e){ cleanState=state; }
     fbDb.ref('subCoverageState').set(cleanState)
       .then(()=>{
-        fbApplyingRemote=false;
+        // Small delay before re-enabling remote listener so our own echo passes first
+        setTimeout(()=>{fbApplyingRemote=false;}, 50);
         setSyncStatus('saved');
-        setTimeout(()=>setSyncStatus('live'), 2000);
+        setTimeout(()=>setSyncStatus('live'), 1500);
       })
       .catch(err=>{
         fbApplyingRemote=false;
         setSyncStatus('error', 'Save failed');
         console.error('Firebase save error:', err);
-        toast('Firebase save failed — changes saved locally only','err');
+        toast('Sync failed — retrying in 5s (changes saved locally)','warn');
+        // Auto-retry after 5s
+        setTimeout(()=>saveState(), 5000);
       });
-  }, 600); // debounce: wait 600ms after last change before writing
+  }, 300); // shorter debounce than v1 to minimize the race window
 }
 
 // ── load ──────────────────────────────────────────────────────
@@ -1423,15 +1710,20 @@ function timesOverlap(r1,r2){
   return r1.start<r2.end && r2.start<r1.end;
 }
 
-function getPeriodRange(periodId){
-  // Return {start,end} for any period ID across default + all templates
-  let p=PERIOD_DEFS.find(x=>x.id===periodId);
-  if(p) return parseTimeRange(p.time);
-  for(const tmpl of (state.settings?.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES)){
-    p=(tmpl.periods||[]).find(x=>x.id===periodId);
-    if(p) return parseTimeRange(p.time);
+function getPeriodRange(periodId, teacherName){
+  // Return {start,end} — prefer the specific teacher's period, else any teacher that has it, else default fallback
+  if(teacherName){
+    const t=state.teachers.find(x=>x.name===teacherName);
+    const p=t?.periods?.find(x=>x.id===periodId);
+    if(p&&p.time) return parseTimeRange(p.time);
   }
-  return null;
+  // Search all teachers for a canonical time for this period ID
+  for(const t of state.teachers){
+    const p=t.periods?.find(x=>x.id===periodId);
+    if(p&&p.time) return parseTimeRange(p.time);
+  }
+  const p=PERIOD_DEFS.find(x=>x.id===periodId);
+  return p?parseTimeRange(p.time):null;
 }
 
 function getSubBusyRanges(subName, ds, skipAbsIdx){
@@ -1557,10 +1849,8 @@ function getConflicts(ds){
   return res;
 }
 function getTeacherScheduleForDay(teacherName,ds){
-  const t=state.teachers.find(x=>x.name===teacherName);if(!t)return null;
-  const dayKey=dayOfWeek(ds);
-  const sched=t.schedule?.[dayKey]||[];
-  return sched.length>0?sched:null;
+  const periods=getTeacherPeriodsForDay(teacherName,ds);
+  return periods.length ? [...new Set(periods.map(p=>p.id))] : null;
 }
 function allSubOptions(selected, suggestion) {
   // suggestion = {name, tier, periods} or null
@@ -1697,82 +1987,66 @@ function renderDayContent(){
 
 function renderAbsCard(ds,abs,idx){
   const tchrOpts=`<option value="">— Select Teacher —</option>`+
-    state.teachers.map(t=>`<option value="${esc(t.name)}"${abs.teacher===t.name?' selected':''}>${esc(t.name)}</option>`).join('');
+    state.teachers.map(t=>`<option value="${esc(t.name)}"${abs.teacher===t.name?' selected':''}>${esc(t.name)}${t.grade?' ('+esc(t.grade)+')':''}</option>`).join('');
   const teacher=state.teachers.find(t=>t.name===abs.teacher);
-  const schedForDay=teacher?getTeacherScheduleForDay(abs.teacher,ds):null;
-  const hasSchedule=schedForDay&&schedForDay.length>0;
-  // Declare these early — used in the template literal below
-  const periodsToRender=getTeacherPeriods(abs.teacher);
-  const tmpl=getTeacherTemplate(abs.teacher);
+  // Get this teacher's periods filtered to the day being viewed
+  const periodsToRender=getTeacherPeriodsForDay(abs.teacher,ds);
 
-  // Build Teams/VR info strip
+  // Teams info strip (VR removed)
   let infoStrip='';
-  const vrList=teacher?.vrCodes&&teacher.vrCodes.length?teacher.vrCodes:(teacher?.vrId?[{desc:'',code:teacher.vrId}]:[]);
-  const hasPeriodSubjects=teacher?.periodSubjects&&Object.keys(teacher.periodSubjects).length>0;
-  if(teacher&&(teacher.teamsLink||vrList.length>0||hasPeriodSubjects)){
-    infoStrip=`<div class="tchr-info-strip" style="flex-direction:column;gap:6px;align-items:flex-start">`;
-    if(teacher.teamsLink){
-      infoStrip+=`<div class="tchr-info-item">🔗 <a href="${esc(teacher.teamsLink)}" target="_blank" rel="noopener">Teams Meeting Link</a></div>`;
-    }
-    if(vrList.length>0){
-      infoStrip+=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">🥽 VR Codes: `;
-      vrList.forEach(({desc,code})=>{
-        infoStrip+=`<span style="background:#ede9fe;color:#5b21b6;padding:2px 8px;border-radius:5px;font-size:.8rem"><strong>${esc(code)}</strong>${desc?' — '+esc(desc):''}</span>`;
-      });
-      infoStrip+=`</div>`;
-    }
-    if(hasPeriodSubjects){
-      const psItems=Object.entries(teacher.periodSubjects).map(([pid,subj])=>`<span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:5px;font-size:.75rem"><strong>${pid}</strong>: ${esc(subj)}</span>`).join('');
-      infoStrip+=`<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">📚 ${psItems}</div>`;
-    }
-    infoStrip+=`</div>`;
-  } else if(teacher&&abs.teacher){
-    infoStrip=`<div class="tchr-info-strip" style="color:#94a3b8;font-style:italic">No Teams Link or VR codes set — <button class="btn btn-ghost btn-sm" style="padding:0;font-size:.75rem;font-style:normal" onclick="openTeacherModal('${esc(teacher.id)}')">Add in teacher profile →</button></div>`;
+  if(teacher&&teacher.teamsLink){
+    infoStrip=`<div class="tchr-info-strip"><div class="tchr-info-item">🔗 <a href="${esc(teacher.teamsLink)}" target="_blank" rel="noopener">Teams Meeting Link</a></div></div>`;
   }
 
   let html=`<div class="abs-card">
     <div class="abs-card-head">
       <select onchange="updateTeacher('${ds}',${idx},this.value)">${tchrOpts}</select>
-      ${tmpl?`<span class="badge" style="background:${tmpl.color}22;color:${tmpl.color};border:1px solid ${tmpl.color}44">${tmpl.gradeLabel}</span>`:''}${hasSchedule?`<span class="badge badge-blue">📅 Schedule</span>`:''}
+      ${teacher?.grade?`<span class="badge badge-blue">${esc(teacher.grade)}</span>`:''}
       <button class="btn btn-danger btn-sm" onclick="removeAbsence('${ds}',${idx})">✕ Remove</button>
     </div>
     ${infoStrip}
-    <div class="abs-card-body">
-      <div class="period-grid">`;
+    <div class="abs-card-body">`;
+
+  if(!abs.teacher){
+    html+=`<div style="padding:14px;color:#94a3b8;text-align:center">Select a teacher above to see their periods for this day.</div></div></div>`;
+    return html;
+  }
+  if(!periodsToRender.length){
+    html+=`<div style="padding:14px;color:#94a3b8;text-align:center">This teacher has no periods listed for ${dayOfWeek(ds)}. Edit their profile to add periods.</div></div></div>`;
+    return html;
+  }
 
   const conflicts=getConflicts(ds);
+  html+=`<div class="period-grid">`;
   for(const p of periodsToRender){
     const val=abs.coverage[p.id]||'';
-    const teaches=!hasSchedule||schedForDay.includes(p.id);
-    const suggest=teaches&&!val?getSuggestion(ds,p.id,idx):null;
-    const conflict=val&&val!=='__NCN__'&&conflicts.some(c=>c.includes(val)&&c.includes(p.label));
+    const suggest=!val?getSuggestion(ds,p.id,idx):null;
+    const conflict=val&&val!=='__NCN__'&&conflicts.some(c=>c.includes(val)&&c.includes(p.id));
     let selCls='period-sel';
-    if(!teaches)selCls+=' na';
-    else if(val==='__NCN__')selCls+=' ncn';
+    if(val==='__NCN__')selCls+=' ncn';
     else if(val&&conflict)selCls+=' conflict';
     else if(val)selCls+=' covered';
     else selCls+=' uncov';
 
+    const labelText = p.label || p.subject || p.id;
+    const dayBadge = (p.days && p.days!=='MTWTh') ? `<span style="font-size:.55rem;color:#5b21b6;background:#ede9fe;padding:1px 4px;border-radius:3px;margin-left:2px">${esc(p.days)}</span>` : '';
+
     html+=`<div class="period-cell">
-      <div class="period-lbl">${p.id}</div>
-      <div class="period-time">${p.time}${p.note?`<div style="font-size:.55rem;color:#94a3b8;margin-top:1px">${p.note}</div>`:''}</div>`;
-    if(teaches){
-      const isNCN = val==='__NCN__';
-      if(isNCN){
-        html+=`<div class="period-sel ncn" style="text-align:center;padding:7px;font-size:.75rem;cursor:default">⊘ No Sub Needed</div>`;
-        html+=`<div class="ncn-active-btn" onclick="updateCoverage('${ds}',${idx},'${p.id}','')" title="Click to mark as needing coverage again">↩ Undo</div>`;
-      } else {
-        html+=`<select class="${selCls}" onchange="updateCoverage('${ds}',${idx},'${p.id}',this.value)">${allSubOptions(val,suggest)}</select>`;
-        if(suggest&&!val){
-          const tierCss=TIER_CSS[suggest.tier]||'tier5';
-          html+=`<div class="suggest-hint" onclick="applySuggest('${ds}',${idx},'${p.id}','${esc(suggest.name)}')" title="Click to assign — ${suggest.periods} periods covered this year">
-            ⭐ ${esc(suggest.name)} <span class="tier-badge ${tierCss}" style="font-size:.55rem">T${suggest.tier}</span>
-          </div>`;
-        }
-        html+=`<div class="ncn-btn" onclick="updateCoverage('${ds}',${idx},'${p.id}','__NCN__')" title="No sub needed this period">⊘ No Sub Needed</div>`;
-      }
+      <div class="period-lbl">${p.id}${dayBadge}</div>
+      <div class="period-time">${esc(p.time||'—')}<div style="font-size:.6rem;color:#475569;margin-top:1px;line-height:1.2">${esc(labelText)}</div></div>`;
+    const isNCN = val==='__NCN__';
+    if(isNCN){
+      html+=`<div class="period-sel ncn" style="text-align:center;padding:7px;font-size:.75rem;cursor:default">⊘ No Sub Needed</div>`;
+      html+=`<div class="ncn-active-btn" onclick="updateCoverage('${ds}',${idx},'${p.id}','')" title="Click to mark as needing coverage again">↩ Undo</div>`;
     } else {
-      html+=`<div class="period-sel na" style="text-align:center;padding:8px;font-size:.7rem">N/A</div>`;
+      html+=`<select class="${selCls}" onchange="updateCoverage('${ds}',${idx},'${p.id}',this.value)">${allSubOptions(val,suggest)}</select>`;
+      if(suggest&&!val){
+        const tierCss=TIER_CSS[suggest.tier]||'tier5';
+        html+=`<div class="suggest-hint" onclick="applySuggest('${ds}',${idx},'${p.id}','${esc(suggest.name)}')" title="Click to assign — ${suggest.periods} periods covered this year">
+          ⭐ ${esc(suggest.name)} <span class="tier-badge ${tierCss}" style="font-size:.55rem">T${suggest.tier}</span>
+        </div>`;
+      }
+      html+=`<div class="ncn-btn" onclick="updateCoverage('${ds}',${idx},'${p.id}','__NCN__')" title="No sub needed this period">⊘ No Sub Needed</div>`;
     }
     html+=`</div>`;
   }
@@ -1789,7 +2063,7 @@ function ensureDay(ds){
 }
 function addAbsence(ds){
   const day=ensureDay(ds);
-  day.absences.push({teacher:'',coverage:{HR:null,P1:null,P2:null,P3:null,P4:null,P5:null,P6:null}});  // coverage updated when teacher selected
+  day.absences.push({teacher:'',coverage:{}});
   saveState();renderDayContent();renderDayTabs();
 }
 function removeAbsence(ds,idx){
@@ -1801,17 +2075,11 @@ function removeAbsence(ds,idx){
 function updateTeacher(ds,idx,name){
   const day=ensureDay(ds);
   day.absences[idx].teacher=name;
-  // Reinitialize coverage for this teacher's schedule template
-  const newPeriods=getTeacherPeriods(name);
-  const oldCov=day.absences[idx].coverage||{};
-  const newCov={};
-  newPeriods.forEach(p=>{newCov[p.id]=oldCov[p.id]!==undefined?oldCov[p.id]:null;});
+  // Rebuild coverage keys for teacher's periods (preserve any existing assignments)
+  const newCov = blankCoverage(name);
+  const oldCov = day.absences[idx].coverage||{};
+  Object.keys(newCov).forEach(pid=>{ if(oldCov[pid]!==undefined) newCov[pid]=oldCov[pid]; });
   day.absences[idx].coverage=newCov;
-  // Auto-apply weekly schedule (grey out periods teacher doesn't teach)
-  const sched=getTeacherScheduleForDay(name,ds);
-  if(sched&&sched.length){
-    newPeriods.forEach(p=>{if(!sched.includes(p.id))newCov[p.id]=null;});
-  }
   saveState();renderDayContent();
 }
 function updateCoverage(ds,idx,periodId,subName){
@@ -1846,8 +2114,6 @@ function copyRoster(ds){
     const teacher=state.teachers.find(t=>t.name===abs.teacher);
     txt+=`\n🔹 ${abs.teacher}\n`;
     if(teacher?.teamsLink) txt+=`   🔗 Teams: ${teacher.teamsLink}\n`;
-    const vrCopyList=teacher?.vrCodes&&teacher.vrCodes.length?teacher.vrCodes:(teacher?.vrId?[{desc:'',code:teacher.vrId}]:[]);
-    vrCopyList.forEach(({desc,code})=>{if(code)txt+=`   🥽 VR: ${code}${desc?' ('+desc+')':''}\n`;});
     // Only show periods that have coverage OR were actively used
     const tPeriods=getTeacherPeriods(abs.teacher);
     const coveredPeriods=tPeriods.filter(p=>abs.coverage[p.id]&&abs.coverage[p.id]!=='__NCN__');
@@ -1859,7 +2125,7 @@ function copyRoster(ds){
         if(v&&v!=='__NCN__')txt+=`     ${p.label||p.id} (${p.time}): ${v}\n`;
       }
     }
-    if(uncoveredPeriods.length&&coveredPeriods.length<PERIOD_DEFS.length){
+    if(uncoveredPeriods.length&&coveredPeriods.length<tPeriods.length){
       const un=uncoveredPeriods.map(p=>p.id).join(', ');
       if(un)txt+=`   ⚠ Unassigned: ${un}\n`;
     }
@@ -2018,25 +2284,17 @@ function jumpToRoster(ds){currentDate=ds;switchTab('roster');}
 // ═══════════════════════════════════════════════════════════════
 function renderTeachers(){
   const q=(document.getElementById('tchrSearch')?.value||'').toLowerCase();
-  const filtered=state.teachers.filter(t=>t.name.toLowerCase().includes(q));
-  if(!filtered.length){
-    document.getElementById('tchrList').innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><p>No teachers found</p></div>`;
-    return;
-  }
-  document.getElementById('tchrList').innerHTML=`<table>
-    <thead><tr><th>Teacher Name</th><th>Grade</th><th>Subjects</th><th>Schedule</th><th>Teams / VR</th><th>Actions</th></tr></thead>
-    <tbody>${filtered.map(t=>{
-      const hasSchedule=Object.values(t.schedule||{}).some(p=>p?.length>0);
-      const hasLinks=t.teamsLink||t.vrId||t.vrCodes?.length;
-      const tTmpl=t.scheduleTemplate?(state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES).find(x=>x.id===t.scheduleTemplate):null;
+  const list=state.teachers.filter(t=>!q||t.name.toLowerCase().includes(q)||(t.grade||'').toLowerCase().includes(q));
+  document.getElementById('tchrList').innerHTML=`
+  <table><thead><tr><th>Teacher Name</th><th>Grade</th><th>Periods</th><th>Teams</th><th>Actions</th></tr></thead>
+    <tbody>${list.map(t=>{
+      const pCount = (t.periods||[]).length;
+      const uniqueIds = [...new Set((t.periods||[]).map(p=>p.id))];
       return `<tr>
-        <td><strong>${esc(t.name)}</strong>${tTmpl?`<span class="badge" style="margin-left:6px;font-size:.65rem;background:${tTmpl.color}22;color:${tTmpl.color}">${tTmpl.gradeLabel}</span>`:''}</td>
-        <td style="font-size:.8rem">${t.grade?esc(t.grade):'<span style="color:#94a3b8">—</span>'}</td>
-        <td style="font-size:.8rem;max-width:140px">${(t.subjects||[t.subject].filter(Boolean)).length?
-          (t.subjects||[t.subject].filter(Boolean)).map(s=>`<span style="display:inline-block;background:#eff6ff;color:#1e40af;border-radius:4px;padding:1px 6px;font-size:.7rem;margin:1px;white-space:nowrap">${esc(s)}</span>`).join('')
-          :'<span style="color:#94a3b8">—</span>'}</td>
-        <td>${hasSchedule?`<span class="badge badge-green">✓ Set</span>`:`<span class="badge badge-gray">Not set</span>`}</td>
-        <td style="font-size:.8rem">${t.teamsLink?`<a href="${esc(t.teamsLink)}" target="_blank" style="color:#1e40af">🔗 Teams</a> `:''}${(t.vrCodes&&t.vrCodes.length||(t.vrId&&!t.vrCodes))?`<span style="color:#5b21b6">🥽 ${(t.vrCodes||[{desc:'',code:t.vrId}]).length} VR code${(t.vrCodes||[]).length!==1?'s':''}</span>`:''}${!hasLinks&&!(t.vrCodes?.length)?`<span style="color:#94a3b8">—</span>`:''}</td>
+        <td><strong>${esc(t.name)}</strong></td>
+        <td style="font-size:.85rem;color:#475569">${esc(t.grade||'—')}</td>
+        <td style="font-size:.8rem;color:#475569">${pCount?`${pCount} entries · ${uniqueIds.join(', ')}`:'<span style="color:#94a3b8">— not set —</span>'}</td>
+        <td style="font-size:.8rem">${t.teamsLink?`<a href="${esc(t.teamsLink)}" target="_blank" style="color:#1e40af">🔗 Teams</a>`:'<span style="color:#94a3b8">—</span>'}</td>
         <td><button class="btn btn-outline btn-sm" onclick="openTeacherModal('${esc(t.id)}')">✏ Edit</button>
             <button class="btn btn-ghost btn-sm" onclick="deleteTeacher('${esc(t.id)}')">🗑</button></td>
       </tr>`;
@@ -2044,155 +2302,64 @@ function renderTeachers(){
   </table>`;
 }
 
-
-function addVrCodeRow(desc,code){
-  const container=document.getElementById('vrCodesContainer');
-  if(!container)return;
+function addTchrPeriodRow(id, label, time, days){
+  const container = document.getElementById('tchrPeriodRows');
+  if(!container) return;
   const row=document.createElement('div');
-  row.className='vr-code-row';
-  row.style.cssText='display:flex;gap:8px;align-items:center';
-  row.innerHTML=`<input class="vr-desc" type="text" placeholder="Description (e.g. 6th Grade Science)" value="${esc(desc||'')}" style="flex:2;padding:7px 10px;border:1.5px solid #CBD5E1;border-radius:7px;font-size:.85rem">
-    <input class="vr-code" type="text" placeholder="VR code / ID" value="${esc(code||'')}" style="flex:1;padding:7px 10px;border:1.5px solid #CBD5E1;border-radius:7px;font-size:.85rem;font-family:monospace">
-    <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()" style="flex-shrink:0">✕</button>`;
+  row.className='tp-row';
+  row.style.cssText='display:grid;grid-template-columns:70px 1fr 130px 90px 32px;gap:6px;align-items:center';
+  row.innerHTML=`
+    <select class="tp-id" style="padding:6px 6px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px;font-weight:700">
+      ${['HR','P1','P2','P3','P4','P5','P6'].map(x=>`<option value="${x}"${x===(id||'P1')?' selected':''}>${x}</option>`).join('')}
+    </select>
+    <input type="text" class="tp-label" placeholder="e.g. ELA 6-1 Ruholt" value="${esc(label||'')}" style="padding:6px 8px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px">
+    <input type="text" class="tp-time" placeholder="8:25–9:15" value="${esc(time||'')}" style="padding:6px 8px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px;font-family:monospace">
+    <select class="tp-days" style="padding:6px 6px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px">
+      ${['MTWTh','MW','TTh','M','T','W','Th'].map(x=>`<option value="${x}"${x===(days||'MTWTh')?' selected':''}>${x}</option>`).join('')}
+    </select>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()" style="color:#dc2626;padding:4px">✕</button>`;
   container.appendChild(row);
-}
-
-// ── Custom subjects helper (see Settings section for full version)
-// function getCustomSubjects() — defined in Settings section
-function _unused_getCustomSubjects(){
-  return state.settings?.customSubjects||["Elementary - Multi-Subject", "ELA / Reading", "Math", "Science", "Social Studies", "History", "PE / Health", "Art", "Music", "Technology", "Special Education", "ESL / ELL", "Counseling", "Administration", "Other"];
-}
-
-// ── Build period details grid in teacher modal ────────────────
-function buildPeriodDetailsGrid(teacher){
-  const el=document.getElementById('periodDetailsGrid');
-  if(!el)return;
-  const subjects=getCustomSubjects();
-  const subjOpts=subjects.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
-  // Use teacher's schedule template periods (or default PERIOD_DEFS)
-  const tmplId=document.getElementById('tchrTemplate')?.value||teacher?.scheduleTemplate||null;
-  const tmpl=(state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES).find(x=>x.id===tmplId);
-  const periodsForGrid=tmpl?tmpl.periods:PERIOD_DEFS;
-  el.innerHTML=`
-    <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px">📚 Period Details${tmpl?` — ${tmpl.name}`:' — Grade & Subject per period'}</label>
-    ${tmpl?`<p style="font-size:.75rem;color:${tmpl.color};background:${tmpl.color}11;padding:6px 10px;border-radius:6px;margin-bottom:8px">Using ${tmpl.name} schedule template</p>`:''}
-    <div style="background:#f8fafc;border:1.5px solid #CBD5E1;border-radius:7px;overflow:hidden">
-      <div style="display:grid;grid-template-columns:55px 100px 1fr 1fr;gap:0;background:#f1f5f9;padding:6px 12px;font-size:.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.04em">
-        <div>Period</div><div>Time</div><div>Grade</div><div>Subject</div>
-      </div>
-      ${periodsForGrid.map((pDef,i)=>{ const pid=pDef.id;
-        const time=pDef.time||pid;
-        const savedGrade=teacher?.periodGrades?.[pid]||'';
-        const savedSubj=teacher?.periodSubjects?.[pid]||'';
-        const gradeOpts=`<option value="">— Grade —</option>        <option value='Pre-K'>Pre-K</option>
-        <option value='Kindergarten'>Kindergarten</option>
-        <option value='1st Grade'>1st Grade</option>
-        <option value='2nd Grade'>2nd Grade</option>
-        <option value='3rd Grade'>3rd Grade</option>
-        <option value='4th Grade'>4th Grade</option>
-        <option value='5th Grade'>5th Grade</option>
-        <option value='6th Grade'>6th Grade</option>
-        <option value='7th Grade'>7th Grade</option>
-        <option value='8th Grade'>8th Grade</option>
-        <option value='9th Grade'>9th Grade</option>
-        <option value='10th Grade'>10th Grade</option>
-        <option value='11th Grade'>11th Grade</option>
-        <option value='12th Grade'>12th Grade</option>
-        <option value='Multiple Grades'>Multiple Grades</option>
-        <option value='School-Wide'>School-Wide</option>`.replace(`value='${savedGrade}'`,`value='${savedGrade}' selected`);
-        const subjectOpts=`<option value="">— Subject —</option>${subjOpts}`.replace(`value="${esc(savedSubj)}"`,`value="${esc(savedSubj)}" selected`);
-        return `<div style="display:grid;grid-template-columns:55px 100px 1fr 1fr;gap:8px;align-items:center;padding:6px 12px;border-top:1px solid #e2e8f0;background:${i%2===0?'white':'#fafafa'}">
-          <div style="font-weight:700;font-size:.82rem;color:#334155" title="${pDef.label||pid}">${pid}</div>
-          <div style="font-size:.7rem;color:#94a3b8">${time}</div>
-          <select id="pg_${pid}" style="padding:5px 6px;font-size:.8rem;border:1px solid #e2e8f0;border-radius:5px;background:white">${gradeOpts}</select>
-          <select id="ps_${pid}" style="padding:5px 6px;font-size:.8rem;border:1px solid #e2e8f0;border-radius:5px;background:white">${subjectOpts}</select>
-        </div>`;
-      }).join('')}
-    </div>`;
-}
-
-
-function updateTeacherModalForTemplate(tmplId){
-  const isDefault=!tmplId;
-  // Show checkbox schedule grid for default; show period preview for templates
-  document.getElementById('schedGridWrapper').style.display=isDefault?'':'none';
-  document.getElementById('tmplPeriodsPreview').style.display=isDefault?'none':'';
-  if(!isDefault){
-    const tmpl=(state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES).find(x=>x.id===tmplId);
-    if(tmpl){
-      document.getElementById('tmplPeriodsList').innerHTML=tmpl.periods.map(p=>
-        `<div style="background:${tmpl.color}18;color:${tmpl.color};border:1px solid ${tmpl.color}44;border-radius:6px;padding:6px 10px;font-size:.82rem">
-          <strong>${p.id}</strong> ${p.label} <span style="opacity:.7">${p.time}</span>
-          ${p.note?`<div style="font-size:.7rem;opacity:.7;margin-top:2px">${p.note}</div>`:''}
-        </div>`).join('');
-      document.getElementById('tmplPeriodsPreview').querySelector('label').textContent=
-        `Coverage blocks — ${tmpl.name}`;
-    }
-  }
 }
 
 function openTeacherModal(id){
   const t=id?state.teachers.find(x=>x.id===id):null;
   document.getElementById('tchrModalTitle').textContent=t?'Edit Teacher':'Add Teacher';
   document.getElementById('tchrNameIn').value=t?.name||'';
+  document.getElementById('tchrGradeIn').value=t?.grade||'';
   document.getElementById('tchrTeamsIn').value=t?.teamsLink||'';
-  // Multi VR codes
-  const container=document.getElementById('vrCodesContainer');
-  container.innerHTML='';
-  const vrList=t?.vrCodes&&t.vrCodes.length?t.vrCodes:(t?.vrId?[{desc:'',code:t.vrId}]:[]);
-  if(vrList.length===0)vrList.push({desc:'',code:''});
-  vrList.forEach(entry=>addVrCodeRow(entry.desc,entry.code));
-  // Populate schedule template dropdown + wire show/hide
-  const tmplSel=document.getElementById('tchrTemplate');
-  if(tmplSel){
-    const templates=state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES;
-    tmplSel.innerHTML='<option value="">Default (HR · P1–P6)</option>'+
-      templates.map(tm=>`<option value="${esc(tm.id)}"${t?.scheduleTemplate===tm.id?' selected':''}>${esc(tm.name)}</option>`).join('');
-    tmplSel.onchange=()=>updateTeacherModalForTemplate(tmplSel.value);
-  }
-  openModal('tchrModal'); // open first so DOM elements exist
-  updateTeacherModalForTemplate(t?.scheduleTemplate||'');
-  // Multi-subject: tick the right checkboxes
-  const savedSubjects=t?.subjects||( t?.subject ? [t.subject] : [] );
-  document.querySelectorAll('.tchr-subject-cb').forEach(cb=>{
-    cb.checked=savedSubjects.includes(cb.value);
-  });
   document.getElementById('tchrModalId').value=id||'';
-  // Build schedule grid
-  let html=`<div class="sched-head"></div>`;
-  ['Mon','Tue','Wed','Thu'].forEach(d=>html+=`<div class="sched-head">${d}</div>`);
-  for(const p of PERIOD_DEFS){
-    html+=`<div class="sched-period">${p.id}<br><span style="font-size:.65rem;color:#94a3b8">${p.time}</span></div>`;
-    ['Mon','Tue','Wed','Thu'].forEach(day=>{
-      const checked=t?.schedule?.[day]?.includes(p.id)||false;
-      html+=`<div class="sched-cb${checked?' checked':''}">
-        <input type="checkbox" id="sched_${p.id}_${day}" ${checked?'checked':''}
-          onchange="this.parentElement.className='sched-cb'+(this.checked?' checked':'')">
-      </div>`;
-    });
+  const container=document.getElementById('tchrPeriodRows');
+  container.innerHTML='';
+  const periods=t?.periods||[];
+  if(periods.length){
+    periods.forEach(p=>addTchrPeriodRow(p.id,p.label||p.subject,p.time,p.days));
+  } else {
+    addTchrPeriodRow('P1','','','MTWTh');
   }
-  document.getElementById('schedGrid').innerHTML=html;
+  openModal('tchrModal');
 }
 
 function saveTeacher(){
   const name=document.getElementById('tchrNameIn').value.trim();
   if(!name){toast('Please enter a name','warn');return;}
-  const id=document.getElementById('tchrModalId').value;
-  const schedule={};
-  for(const day of DAYS_OF_WEEK){
-    schedule[day]=PERIOD_DEFS.filter(p=>document.getElementById(`sched_${p.id}_${day}`)?.checked).map(p=>p.id);
-  }
+  const grade=document.getElementById('tchrGradeIn').value.trim();
   const teamsLink=document.getElementById('tchrTeamsIn').value.trim();
-  const vrCodes=[...document.querySelectorAll('.vr-code-row')].map(row=>({
-    desc:row.querySelector('.vr-desc').value.trim(),
-    code:row.querySelector('.vr-code').value.trim()
-  })).filter(e=>e.code);
-  const scheduleTemplate=document.getElementById('tchrTemplate')?.value||'';
+  const periods=[...document.querySelectorAll('#tchrPeriodRows .tp-row')].map(row=>({
+    id:row.querySelector('.tp-id').value,
+    label:row.querySelector('.tp-label').value.trim(),
+    subject:row.querySelector('.tp-label').value.trim(),
+    time:row.querySelector('.tp-time').value.trim(),
+    days:row.querySelector('.tp-days').value
+  })).filter(p=>p.label);
+  // Sort periods by ID then by days-of-week
+  const order={'HR':0,'P1':1,'P2':2,'P3':3,'P4':4,'P5':5,'P6':6};
+  periods.sort((a,b)=>(order[a.id]||9)-(order[b.id]||9));
+  const id=document.getElementById('tchrModalId').value;
   if(id){
     const t=state.teachers.find(x=>x.id===id);
-    if(t){t.name=name;t.schedule=schedule;t.teamsLink=teamsLink;t.vrCodes=vrCodes;t.scheduleTemplate=scheduleTemplate||null;}
+    if(t){t.name=name;t.grade=grade;t.teamsLink=teamsLink;t.periods=periods;}
   } else {
-    state.teachers.push({id:'t'+Date.now(),name,schedule,teamsLink,vrCodes,scheduleTemplate:scheduleTemplate||null});
+    state.teachers.push({id:'t'+Date.now(),name,grade,teamsLink,periods,band:''});
     state.teachers.sort((a,b)=>a.name.localeCompare(b.name));
   }
   saveState();closeModal('tchrModal');renderTeachers();
@@ -2292,10 +2459,7 @@ function renderSettings(){
   document.getElementById('sSchool').value=s.schoolName||'';
   document.getElementById('sStart').value=s.yearStart||'';
   document.getElementById('sEnd').value=s.yearEnd||'';
-  document.getElementById('periodEd').innerHTML=PERIOD_DEFS.map(p=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-      <span style="width:35px;font-weight:700;font-size:.85rem">${p.id}</span>
-      <span style="font-size:.82rem;color:#64748b">${p.time}</span>
-    </div>`).join('');
+  // periodEd removed — each teacher owns their own period times now
   document.getElementById('holidayLst').innerHTML=state.holidays.sort((a,b)=>a.date<b.date?-1:1)
     .map((h,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f8fafc">
       <span style="font-size:.875rem"><strong>${h.date}</strong> — ${esc(h.label)}</span>
@@ -2313,27 +2477,7 @@ function renderSettings(){
   const fbCard=document.getElementById('fbSetupCard');
   if(fbCard)renderFbSettingsCard(fbEnabled, BUILT_IN_FIREBASE_CONFIG?.projectId||'');
   document.getElementById('holidayLst').innerHTML+= ltaHtml;
-  // Schedule templates
-  const tmplEl=document.getElementById('templatesSettingsList');
-  if(tmplEl){
-    const tmpls=state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES;
-    tmplEl.innerHTML=tmpls.map((tm,i)=>`
-      <div style="border:1px solid ${tm.color}44;border-radius:8px;padding:12px 14px;margin-bottom:8px;background:${tm.color}08">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div>
-            <span style="font-weight:700;color:${tm.color}">${esc(tm.gradeLabel)}</span>
-            <span style="font-size:.85rem;color:#475569;margin-left:8px">${esc(tm.name)}</span>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-outline btn-sm" onclick="openTmplEditor('${esc(tm.id)}')" title="Edit">✏ Edit</button>
-            <button class="btn btn-ghost btn-sm" style="color:#dc2626" onclick="if(confirm('Remove this template? Teachers using it will revert to default.')){state.settings.scheduleTemplates.splice(${i},1);saveState();renderSettings();toast('Template removed','ok');}" title="Remove">🗑</button>
-          </div>
-        </div>
-        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px">
-          ${tm.periods.map(p=>`<span style="background:${tm.color}22;color:${tm.color};border-radius:4px;padding:2px 7px;font-size:.72rem;font-weight:600">${p.id}: ${p.label} <span style="opacity:.7">${p.time}</span></span>`).join('')}
-        </div>
-      </div>`).join('')||'<p style="color:#94a3b8;font-size:.85rem">No custom templates</p>';
-  }
+
 
 }
 
@@ -2358,8 +2502,8 @@ function removeCustomSubject(i){
 }
 function saveSettings(){
   state.settings.schoolName=document.getElementById('sSchool').value.trim()||'OptimaED';
-  state.settings.yearStart=document.getElementById('sStart').value||'2025-08-13';
-  state.settings.yearEnd=document.getElementById('sEnd').value||'2026-05-28';
+  state.settings.yearStart=document.getElementById('sStart').value||'2026-08-12';
+  state.settings.yearEnd=document.getElementById('sEnd').value||'2027-05-28';
   saveState();
   document.getElementById('schoolNameHdr').textContent=state.settings.schoolName;
   toast('Settings saved','ok');
@@ -2424,8 +2568,6 @@ function printRoster(){
       const teacher=state.teachers.find(t=>t.name===abs.teacher);
       html+=`<h2>${abs.teacher||'Unknown Teacher'}</h2>`;
       if(teacher?.teamsLink)html+=`<p>🔗 Teams: <a href="${teacher.teamsLink}">${teacher.teamsLink}</a></p>`;
-      const vrPrintList=teacher?.vrCodes&&teacher.vrCodes.length?teacher.vrCodes:(teacher?.vrId?[{desc:'',code:teacher.vrId}]:[]);
-      vrPrintList.forEach(({desc,code})=>{if(code)html+=`<p>🥽 VR: <strong>${code}</strong>${desc?' — '+desc:''}</p>`;});
       const absPeriods=getTeacherPeriods(abs.teacher);
       html+=`<table><tr>${absPeriods.map(p=>`<th>${p.label||p.id}<br><small>${p.time}</small>`).join('')}</tr>
       <tr>${absPeriods.map(p=>{const v=abs.coverage[p.id];return`<td class="${v&&v!=='__NCN__'?'covered':'empty'}">${v&&v!=='__NCN__'?v:'—'}</td>`;}).join('')}</tr></table>`;
@@ -2681,70 +2823,7 @@ function renderInsights(){
 // ═══════════════════════════════════════════════════════════════
 //  SCHEDULE TEMPLATE EDITOR
 // ═══════════════════════════════════════════════════════════════
-function openTmplEditor(tmplId){
-  document.getElementById('tmplEditorTitle').textContent = tmplId ? 'Edit Schedule Template' : 'Add Schedule Template';
-  document.getElementById('tmplEditingId').value = tmplId||'';
-  const existing = tmplId
-    ? (state.settings.scheduleTemplates||DEFAULT_SCHEDULE_TEMPLATES).find(x=>x.id===tmplId)
-    : null;
-  document.getElementById('tmplName').value       = existing?.name||'';
-  document.getElementById('tmplGradeLabel').value = existing?.gradeLabel||'';
-  document.getElementById('tmplColor').value      = existing?.color||'#6366f1';
-  // Populate period rows
-  document.getElementById('tmplPeriodRows').innerHTML = '';
-  const periods = existing?.periods||[];
-  if(periods.length===0) periods.push({id:'',label:'',time:'',note:''});
-  periods.forEach(p => addTmplPeriodRow(p.id, p.label, p.time, p.note));
-  openModal('tmplEditorModal');
-}
 
-function addTmplPeriodRow(id,label,time,note){
-  const row = document.createElement('div');
-  row.className = 'tmpl-period-row';
-  row.style.cssText = 'display:grid;grid-template-columns:70px 1fr 110px 1fr 32px;gap:6px;align-items:center';
-  row.innerHTML = `
-    <input type="text" class="tp-id" placeholder="ID (e.g. ELA)" value="${esc(id||'')}"
-      style="padding:6px 8px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px;font-weight:700;text-transform:uppercase"
-      oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)">
-    <input type="text" class="tp-label" placeholder="Label (e.g. ELA / Circle)" value="${esc(label||'')}"
-      style="padding:6px 8px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px">
-    <input type="text" class="tp-time" placeholder="9:00–10:00" value="${esc(time||'')}"
-      style="padding:6px 8px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px;font-family:monospace">
-    <input type="text" class="tp-note" placeholder="Note (e.g. M/T: Music · W/Th: Art)" value="${esc(note||'')}"
-      style="padding:6px 8px;font-size:.82rem;border:1.5px solid #CBD5E1;border-radius:6px;color:#94a3b8">
-    <button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()" style="color:#dc2626;padding:4px">✕</button>`;
-  document.getElementById('tmplPeriodRows').appendChild(row);
-}
-
-function saveTemplateEdit(){
-  const name  = document.getElementById('tmplName').value.trim();
-  const grade = document.getElementById('tmplGradeLabel').value.trim();
-  const color = document.getElementById('tmplColor').value;
-  if(!name){toast('Please enter a template name','warn');return;}
-  if(!grade){toast('Please enter a grade label','warn');return;}
-  const periods = [...document.querySelectorAll('.tmpl-period-row')].map(row=>({
-    id:    row.querySelector('.tp-id').value.trim().toUpperCase(),
-    label: row.querySelector('.tp-label').value.trim(),
-    time:  row.querySelector('.tp-time').value.trim(),
-    ...(row.querySelector('.tp-note').value.trim() ? {note:row.querySelector('.tp-note').value.trim()} : {})
-  })).filter(p=>p.id&&p.label);
-  if(!periods.length){toast('Add at least one coverage block','warn');return;}
-  const editId = document.getElementById('tmplEditingId').value;
-  if(!state.settings.scheduleTemplates) state.settings.scheduleTemplates=[...DEFAULT_SCHEDULE_TEMPLATES];
-  if(editId){
-    const idx = state.settings.scheduleTemplates.findIndex(x=>x.id===editId);
-    const updated = {id:editId, name, gradeLabel:grade, color, periods};
-    if(idx>=0) state.settings.scheduleTemplates[idx]=updated;
-    else state.settings.scheduleTemplates.push(updated);
-  } else {
-    const newId = name.toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,12);
-    state.settings.scheduleTemplates.push({id:newId, name, gradeLabel:grade, color, periods});
-  }
-  saveState();
-  closeModal('tmplEditorModal');
-  renderSettings();
-  toast(editId ? 'Template updated' : 'Template added','ok');
-}
 
 
 async function init(){
