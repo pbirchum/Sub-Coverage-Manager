@@ -286,13 +286,13 @@ tr:hover td{background:#f8fafc}
     <button class="btn btn-primary" onclick="openSubModal()">+ Add Sub</button>
   </div>
   <div style="font-size:.82rem;color:#64748b;margin-bottom:12px;background:white;border-radius:8px;padding:12px 16px;border:1px solid #f1f5f9">
-    <strong>Tier guide:</strong>
-    <span class="tier-badge tier1" style="margin-left:8px">T1 Full-time</span>
-    <span class="tier-badge tier2" style="margin-left:6px">T2 Part-time</span>
-    <span class="tier-badge tier3" style="margin-left:6px">T3 Regular</span>
-    <span class="tier-badge tier4" style="margin-left:6px">T4 Occasional</span>
-    <span class="tier-badge tier5" style="margin-left:6px">T5 Teacher/Limited</span>
-    <span style="margin-left:10px;color:#94a3b8">— suggestions prioritize lower tiers, then fairness within tier</span>
+    <strong>Tiers:</strong>
+    <span class="tier-badge tier1" style="margin-left:8px">T1</span>
+    <span class="tier-badge tier2" style="margin-left:6px">T2</span>
+    <span class="tier-badge tier3" style="margin-left:6px">T3</span>
+    <span class="tier-badge tier4" style="margin-left:6px">T4</span>
+    <span class="tier-badge tier5" style="margin-left:6px">T5</span>
+    <span style="margin-left:10px;color:#94a3b8">— lower tiers get priority</span>
   </div>
   <div class="card" style="padding:0;overflow:hidden">
     <table><thead><tr><th>Tier</th><th>Name</th><th>Total Periods</th><th>This Month</th><th>Workload</th><th>Actions</th></tr></thead>
@@ -441,17 +441,22 @@ tr:hover td{background:#f8fafc}
       <div class="form-group" style="margin-bottom:0">
         <label>Tier</label>
         <select id="subTierIn">
-          <option value="1">Tier 1 — Full-time sub (Larisa, Kristina)</option>
-          <option value="2">Tier 2 — Part-time sub (Brandi)</option>
-          <option value="3">Tier 3 — Regular coverage (Porter, Karen)</option>
-          <option value="4">Tier 4 — Occasional coverage (Louise, Kortni, Curby)</option>
-          <option value="5">Tier 5 — Teacher/limited availability</option>
+          <option value="1">Tier 1</option>
+          <option value="2">Tier 2</option>
+          <option value="3">Tier 3</option>
+          <option value="4">Tier 4</option>
+          <option value="5">Tier 5</option>
         </select>
       </div>
     </div>
     <div style="margin-top:16px">
-      <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px">Availability Schedule</label>
-      <p style="font-size:.78rem;color:#64748b;margin-bottom:10px">Check the periods this sub is available to cover. Leave all unchecked = available any period.</p>
+      <label style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;cursor:pointer;margin-bottom:10px">
+        <input type="checkbox" id="subAlwaysAvailIn" style="width:16px;height:16px;accent-color:#16a34a">
+        <span style="font-size:.9rem;font-weight:600;color:#166534">✓ Always available — flexible / no fixed schedule</span>
+      </label>
+      <p style="font-size:.78rem;color:#64748b;margin-bottom:8px">Check this for subs with variable weekly availability. Their name will show in every period's dropdown regardless of the grid below.</p>
+      <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;margin-top:14px">Fixed Availability Grid (optional)</label>
+      <p style="font-size:.78rem;color:#64748b;margin-bottom:10px">Only used when "Always available" is unchecked. Check the periods this sub can cover each day.</p>
       <div class="sched-grid" id="subSchedGrid"></div>
     </div>
     <input type="hidden" id="subModalId">
@@ -691,22 +696,40 @@ const PERIOD_DEFS=[
 // Map day-code (Mon/Tue/Wed/Thu) → letter used in a period's days string
 const DAY_LETTER={Mon:'M',Tue:'T',Wed:'W',Thu:'Th'};
 
-// Return the periods a teacher runs (their own list, or fallback)
+// Return the periods a teacher runs (their own list, or fallback) — always sorted HR→P1→…→P6
 function getTeacherPeriods(teacherName){
   if(!teacherName) return PERIOD_DEFS;
   const t=state.teachers.find(x=>x.name===teacherName);
   if(!t||!Array.isArray(t.periods)||!t.periods.length) return PERIOD_DEFS;
-  return t.periods;
+  return sortPeriods(t.periods);
 }
 
-// Filter a teacher's periods to those that run on the given day
+// Filter a teacher's periods to those that run on the given day.
+// Correctly distinguishes 'T' (Tuesday) from 'Th' (Thursday) so a period marked
+// days:"MW" is NOT considered running on Thursday.
+function periodRunsOnDay(period, dow){
+  if(!period.days) return true; // no days spec → runs every day
+  const d = period.days;
+  // Check T/Th and Tu/Th patterns carefully — 'T' alone means Tuesday, 'Th' means Thursday
+  // Walk through the string picking off day tokens (M, T, W, Th)
+  const tokens = [];
+  let i = 0;
+  while(i < d.length){
+    if(d[i]==='T' && d[i+1]==='h'){ tokens.push('Th'); i+=2; }
+    else if(d[i]==='M'){ tokens.push('M'); i++; }
+    else if(d[i]==='T'){ tokens.push('T'); i++; }
+    else if(d[i]==='W'){ tokens.push('W'); i++; }
+    else { i++; }
+  }
+  const map = {Mon:'M', Tue:'T', Wed:'W', Thu:'Th'};
+  return tokens.includes(map[dow]);
+}
 function getTeacherPeriodsForDay(teacherName, ds){
   const periods=getTeacherPeriods(teacherName);
   if(!ds) return periods;
   const dow=dayOfWeek(ds); // 'Mon'|'Tue'|'Wed'|'Thu'|...
-  const letter=DAY_LETTER[dow];
-  if(!letter) return [];
-  return periods.filter(p=>!p.days || p.days.includes(letter));
+  if(!['Mon','Tue','Wed','Thu'].includes(dow)) return [];
+  return periods.filter(p=>periodRunsOnDay(p, dow));
 }
 
 // Blank coverage object keyed by unique period IDs a teacher has
@@ -1353,7 +1376,21 @@ let fbApplyingRemote = false; // prevents echo loop
 
 // Seed version — bump this whenever SEED_TEACHER_SCHEDULES changes to force clients
 // (and the Firebase copy) to re-hydrate teacher periods + Teams links from the current seed.
-const CURRENT_SEED_VERSION = 3;
+const CURRENT_SEED_VERSION = 4;
+
+// Canonical period ordering: HR first, then P1..P6 (chronological).
+const PERIOD_ORDER = {HR:0, P1:1, P2:2, P3:3, P4:4, P5:5, P6:6};
+function sortPeriods(periods){
+  if(!Array.isArray(periods)) return periods;
+  return periods.slice().sort((a,b)=>{
+    const oa = PERIOD_ORDER[a.id] ?? 99;
+    const ob = PERIOD_ORDER[b.id] ?? 99;
+    if(oa !== ob) return oa - ob;
+    // Within the same period id, put "all-week" first, then M/W, then T/Th
+    const rank = d => d==='MTWTh'?0 : (d==='MW'||d==='M'||d==='W')?1 : 2;
+    return rank(a.days) - rank(b.days);
+  });
+}
 
 // Re-apply seed periods + Teams link + grade for every seeded teacher.
 // Non-seeded teachers keep whatever's stored. Coverage assignments are NOT touched
@@ -1374,7 +1411,7 @@ function applySeedRefresh(s){
       name,
       grade: seed?.grade || existing?.grade || '',
       band:  seed?.band  || existing?.band  || '',
-      periods: seed ? JSON.parse(JSON.stringify(seed.periods)) : (existing?.periods||[]),
+      periods: sortPeriods(seed ? JSON.parse(JSON.stringify(seed.periods)) : (existing?.periods||[])),
       teamsLink: seed?.teamsLink || existing?.teamsLink || ''
     });
     seenNames.add(name);
@@ -1400,11 +1437,11 @@ function buildDefault(){
       name,
       grade: seed?.grade || '',
       band: seed?.band || '',
-      periods: seed ? JSON.parse(JSON.stringify(seed.periods)) : [],
+      periods: sortPeriods(seed ? JSON.parse(JSON.stringify(seed.periods)) : []),
       teamsLink: seed?.teamsLink || ''
     };
   });
-  const subs = SEED_SUBS.map((name,i)=>({id:'s'+i,name,tier:TIER_MAP[name]||5,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]}}));
+  const subs = SEED_SUBS.map((name,i)=>({id:'s'+i,name,tier:TIER_MAP[name]||5,alwaysAvailable:true,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]}}));
   const roster={};
   for(const [d,abs,notes] of SEED_ROSTER){
     roster[d]={absences:abs.map(a=>({teacher:a[0],coverage:{HR:a[1]||null,P1:a[2]||null,P2:a[3]||null,P3:a[4]||null,P4:a[5]||null,P5:a[6]||null,P6:a[7]||null}})),notes:notes||''};
@@ -1454,7 +1491,7 @@ function normalizeState(s){
       name:t.name||'',
       grade:t.grade||(seededMap[t.name]?.grade||''),
       band:t.band||(seededMap[t.name]?.band||''),
-      periods: periods||[],
+      periods: sortPeriods(periods||[]),
       teamsLink:t.teamsLink||seededMap[t.name]?.teamsLink||''
     };
   });
@@ -1462,13 +1499,16 @@ function normalizeState(s){
   s.subs=toArr(s.subs).map(sub=>({
     id:sub.id||'s'+Math.random(),name:sub.name||'',
     tier:Number(sub.tier)||TIER_MAP[sub.name]||5,
+    // Default alwaysAvailable=true when the field isn't stored, so existing
+    // Firebase subs stop being wrongly flagged as unavailable.
+    alwaysAvailable: sub.alwaysAvailable!==false,
     schedule:{
       Mon:toArr(sub.schedule?.Mon),Tue:toArr(sub.schedule?.Tue),
       Wed:toArr(sub.schedule?.Wed),Thu:toArr(sub.schedule?.Thu)
     }
   }));
   if(s.subs.length===0){
-    s.subs=SEED_SUBS.map((name,i)=>({id:'s'+i,name,tier:TIER_MAP[name]||5,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]}}));
+    s.subs=SEED_SUBS.map((name,i)=>({id:'s'+i,name,tier:TIER_MAP[name]||5,alwaysAvailable:true,schedule:{Mon:[],Tue:[],Wed:[],Thu:[]}}));
   }
   if(s.teachers.length===0){
     s.teachers=buildDefault().teachers;
@@ -1868,6 +1908,8 @@ function getSubBusyRanges(subName, ds, skipAbsIdx){
 }
 
 function isSubAvailableForPeriod(sub, ds, periodId) {
+  // Always available overrides the fixed grid entirely
+  if (sub.alwaysAvailable !== false) return true;
   const dayKey = dayOfWeek(ds);
   const sched = sub.schedule?.[dayKey] || [];
   const hasAnySched = sub.schedule && Object.values(sub.schedule).some(p=>p?.length>0);
@@ -1988,7 +2030,7 @@ function allSubOptions(selected, suggestion) {
   });
   for (const tier of [1,2,3,4,5]) {
     if (!byTier[tier]?.length) continue;
-    o += `<optgroup label="Tier ${tier} — ${['','Full-time','Part-time','Regular','Occasional','Limited'][tier]}">`;
+    o += `<optgroup label="Tier ${tier}">`;
     byTier[tier].forEach(s => {
       const isSug = suggestion?.name === s.name && !selected;
       o += `<option value="${esc(s.name)}"${selected===s.name?' selected':''}>${esc(s.name)}${isSug?' ⭐ Suggested':''}</option>`;
@@ -2071,7 +2113,6 @@ function renderDayContent(){
     }
   }
   const day=state.roster[ds]||{absences:[],notes:''};
-  const conflicts=getConflicts(ds);
   let html='';
   // Long-term assignments active today
   const activeLTAs=(state.longTermAssignments||[]).filter(a=>a.startDate<=ds&&a.endDate>=ds);
@@ -2080,9 +2121,6 @@ function renderDayContent(){
       <span>🔵 <strong>Long-term:</strong> ${esc(a.coverSub)} is full-time covering <strong>${esc(a.teacher)}</strong>${a.note?` — ${esc(a.note)}`:''} <span style="font-size:.75rem;opacity:.7">(ends ${a.endDate})</span></span>
       <button class="btn btn-ghost btn-sm" onclick="removeLTA('${a.id}')">✕</button>
     </div>`).join('');
-  }
-  if(conflicts.length){
-    html+=`<div class="conflict-alert">⚠️ <div><strong>Scheduling Conflicts Detected:</strong><br>${conflicts.map(c=>`• ${c}`).join('<br>')}</div></div>`;
   }
   html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
     <div>
@@ -2140,15 +2178,11 @@ function renderAbsCard(ds,abs,idx){
     return html;
   }
 
-  const conflicts=getConflicts(ds);
   html+=`<div class="period-grid">`;
   for(const p of periodsToRender){
     const val=abs.coverage[p.id]||'';
-    const suggest=!val?getSuggestion(ds,p.id,idx):null;
-    const conflict=val&&val!=='__NCN__'&&conflicts.some(c=>c.includes(val)&&c.includes(p.id));
     let selCls='period-sel';
     if(val==='__NCN__')selCls+=' ncn';
-    else if(val&&conflict)selCls+=' conflict';
     else if(val)selCls+=' covered';
     else selCls+=' uncov';
 
@@ -2163,13 +2197,7 @@ function renderAbsCard(ds,abs,idx){
       html+=`<div class="period-sel ncn" style="text-align:center;padding:7px;font-size:.75rem;cursor:default">⊘ No Sub Needed</div>`;
       html+=`<div class="ncn-active-btn" onclick="updateCoverage('${ds}',${idx},'${p.id}','')" title="Click to mark as needing coverage again">↩ Undo</div>`;
     } else {
-      html+=`<select class="${selCls}" onchange="updateCoverage('${ds}',${idx},'${p.id}',this.value)">${allSubOptions(val,suggest)}</select>`;
-      if(suggest&&!val){
-        const tierCss=TIER_CSS[suggest.tier]||'tier5';
-        html+=`<div class="suggest-hint" onclick="applySuggest('${ds}',${idx},'${p.id}','${esc(suggest.name)}')" title="Click to assign — ${suggest.periods} periods covered this year">
-          ⭐ ${esc(suggest.name)} <span class="tier-badge ${tierCss}" style="font-size:.55rem">T${suggest.tier}</span>
-        </div>`;
-      }
+      html+=`<select class="${selCls}" onchange="updateCoverage('${ds}',${idx},'${p.id}',this.value)">${allSubOptions(val,null)}</select>`;
       html+=`<div class="ncn-btn" onclick="updateCoverage('${ds}',${idx},'${p.id}','__NCN__')" title="No sub needed this period">⊘ No Sub Needed</div>`;
     }
     html+=`</div>`;
@@ -2233,24 +2261,34 @@ function renderDayTabs(){
 function copyRoster(ds){
   const day=state.roster[ds];
   if(!day||!day.absences.length){toast('No absences to copy','warn');return;}
+  // Human label for period IDs — no subject/section, just the period name
+  const idLabel = pid => pid==='HR' ? 'Homeroom' : pid.replace(/^P/,'Period ');
   let txt=`📋 Sub Coverage — ${fmtLong(ds)}\n${'─'.repeat(44)}\n`;
   day.absences.forEach(abs=>{
     const teacher=state.teachers.find(t=>t.name===abs.teacher);
     txt+=`\n🔹 ${abs.teacher}\n`;
     if(teacher?.teamsLink) txt+=`   🔗 Teams: ${teacher.teamsLink}\n`;
-    // Only show periods that have coverage OR were actively used
-    const tPeriods=getTeacherPeriods(abs.teacher);
-    const coveredPeriods=tPeriods.filter(p=>abs.coverage[p.id]&&abs.coverage[p.id]!=='__NCN__');
-    const uncoveredPeriods=tPeriods.filter(p=>!abs.coverage[p.id]&&abs.coverage[p.id]!=='__NCN__');
+    // Only show periods that ACTUALLY run on this specific day (M/W vs T/Th aware).
+    // De-dupe by period id (a period may appear twice for M/W + T/Th before day filtering).
+    const dayPeriods = getTeacherPeriodsForDay(abs.teacher, ds);
+    const seen = new Set();
+    const uniquePeriods = [];
+    for(const p of dayPeriods){
+      if(seen.has(p.id)) continue;
+      seen.add(p.id);
+      uniquePeriods.push(p);
+    }
+    const coveredPeriods = uniquePeriods.filter(p=>abs.coverage[p.id]&&abs.coverage[p.id]!=='__NCN__');
+    const uncoveredPeriods = uniquePeriods.filter(p=>!abs.coverage[p.id]);
     if(coveredPeriods.length){
       txt+=`   Coverage:\n`;
-      for(const p of tPeriods){
+      for(const p of uniquePeriods){
         const v=abs.coverage[p.id];
-        if(v&&v!=='__NCN__')txt+=`     ${p.label||p.id} (${p.time}): ${v}\n`;
+        if(v&&v!=='__NCN__')txt+=`     ${idLabel(p.id)} (${p.time||'—'}): ${v}\n`;
       }
     }
-    if(uncoveredPeriods.length&&coveredPeriods.length<tPeriods.length){
-      const un=uncoveredPeriods.map(p=>p.id).join(', ');
+    if(uncoveredPeriods.length){
+      const un=uncoveredPeriods.map(p=>idLabel(p.id)).join(', ');
       if(un)txt+=`   ⚠ Unassigned: ${un}\n`;
     }
   });
@@ -2476,8 +2514,8 @@ function saveTeacher(){
     days:row.querySelector('.tp-days').value
   })).filter(p=>p.label);
   // Sort periods by ID then by days-of-week
-  const order={'HR':0,'P1':1,'P2':2,'P3':3,'P4':4,'P5':5,'P6':6};
-  periods.sort((a,b)=>(order[a.id]||9)-(order[b.id]||9));
+  const sortedPeriods = sortPeriods(periods);
+  periods.length = 0; periods.push(...sortedPeriods);
   const id=document.getElementById('tchrModalId').value;
   if(id){
     const t=state.teachers.find(x=>x.id===id);
@@ -2510,17 +2548,18 @@ function renderSubs(){
     if(s.tier!==lastTier){
       const tierCss=TIER_CSS[s.tier]||'tier5';
       rows+=`<tr style="background:#fafafa"><td colspan="6" style="padding:8px 13px;font-size:.78rem;font-weight:700;color:#475569;border-bottom:1px solid #e2e8f0">
-        <span class="tier-badge ${tierCss}">Tier ${s.tier} — ${['','Full-time dedicated subs','Part-time sub','Regular coverage','Occasional coverage','Teacher / limited availability'][s.tier]||'Other'}</span>
+        <span class="tier-badge ${tierCss}">Tier ${s.tier}</span>
       </td></tr>`;
       lastTier=s.tier;
     }
     const pct=Math.round(s.total/maxN*100);
     const cls=pct>80?'heavy':pct<30?'light':'';
-    const hasAvail=s.schedule&&Object.values(s.schedule).some(p=>p?.length>0);
+    const alwaysAvail = s.alwaysAvailable!==false;
+    const hasAvail=!alwaysAvail && s.schedule&&Object.values(s.schedule).some(p=>p?.length>0);
     const ltaActive=(state.longTermAssignments||[]).some(a=>a.coverSub===s.name&&a.startDate<=dateStr(now)&&a.endDate>=dateStr(now));
     rows+=`<tr${ltaActive?' style="background:#eff6ff"':''}>
       <td><span class="tier-badge ${TIER_CSS[s.tier]||'tier5'}">T${s.tier}</span></td>
-      <td><strong>${esc(s.name)}</strong>${hasAvail?` <span class="badge badge-blue" style="font-size:.65rem">Avail set</span>`:''}${ltaActive?` <span class="badge badge-purple" style="font-size:.65rem">LTA Active</span>`:''}</td>
+      <td><strong>${esc(s.name)}</strong>${alwaysAvail?` <span class="badge badge-green" style="font-size:.65rem">Always Avail</span>`:hasAvail?` <span class="badge badge-blue" style="font-size:.65rem">Fixed sched</span>`:''}${ltaActive?` <span class="badge badge-purple" style="font-size:.65rem">LTA Active</span>`:''}</td>
       <td>${s.total}</td>
       <td>${s.month}</td>
       <td><div style="background:#f1f5f9;border-radius:99px;height:10px;width:160px;overflow:hidden">
@@ -2540,6 +2579,8 @@ function openSubModal(id){
   document.getElementById('subNameIn').value=s?.name||'';
   document.getElementById('subTierIn').value=s?.tier||5;
   document.getElementById('subModalId').value=id||'';
+  // Default new subs to alwaysAvailable=true; existing subs use their stored value
+  document.getElementById('subAlwaysAvailIn').checked = s ? (s.alwaysAvailable!==false) : true;
   let html=`<div class="sched-head"></div>`;
   ['Mon','Tue','Wed','Thu'].forEach(d=>html+=`<div class="sched-head">${d}</div>`);
   for(const p of PERIOD_DEFS){
@@ -2559,13 +2600,14 @@ function saveSub(){
   const name=document.getElementById('subNameIn').value.trim();
   if(!name){toast('Please enter a name','warn');return;}
   const tier=parseInt(document.getElementById('subTierIn').value)||5;
+  const alwaysAvailable=document.getElementById('subAlwaysAvailIn').checked;
   const id=document.getElementById('subModalId').value;
   const schedule={};
   for(const day of DAYS_OF_WEEK){
     schedule[day]=PERIOD_DEFS.filter(p=>document.getElementById(`subSched_${p.id}_${day}`)?.checked).map(p=>p.id);
   }
-  if(id){const s=state.subs.find(x=>x.id===id);if(s){s.name=name;s.tier=tier;s.schedule=schedule;}}
-  else state.subs.push({id:'s'+Date.now(),name,tier,schedule});
+  if(id){const s=state.subs.find(x=>x.id===id);if(s){s.name=name;s.tier=tier;s.alwaysAvailable=alwaysAvailable;s.schedule=schedule;}}
+  else state.subs.push({id:'s'+Date.now(),name,tier,alwaysAvailable,schedule});
   saveState();closeModal('subModal');renderSubs();
   toast(id?'Sub updated':'Sub added','ok');
 }
