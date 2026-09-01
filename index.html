@@ -57,6 +57,8 @@ select{cursor:pointer}
 .day-tab.active{border-color:#1e40af;background:#eff6ff;color:#1e40af;font-weight:600}
 .day-tab.has-abs{border-color:#fca5a5;background:#fff5f5}
 .day-tab.has-abs.active{border-color:#dc2626;background:#fee2e2;color:#991b1b}
+.day-tab.all-covered{border-color:#86efac;background:#f0fdf4;color:#166534}
+.day-tab.all-covered.active{border-color:#16a34a;background:#dcfce7;color:#166534}
 .day-tab.is-holiday{border-color:#e9d5ff;background:#faf5ff;color:#7c3aed}
 .day-tab .day-label{font-weight:700;font-size:.9rem}
 .day-tab .day-info{font-size:.72rem;opacity:.8}
@@ -1185,32 +1187,19 @@ const SEED_TEACHER_SCHEDULES = [
 
 const _SEEDED_NAMES = SEED_TEACHER_SCHEDULES.map(t=>t.name);
 // Non-scheduled teachers (specialists, aides, other names from prior roster)
+// Only truly current staff not already in the schedule seed.
+// (Names that also appear in SEED_TEACHER_SCHEDULES are filtered out below to prevent duplicates.)
 const SEED_UNSCHEDULED_TEACHERS = [
-  'Elizabeth Wittwer',
-  'Farah Helgerson',
-  'Hannah Hardy',
-  'James Foster',
   'Jamie Ching',
-  'Janelle Diaz',
-  'Jesse Thompson',
-  'John Rosenbaum',
-  'Keysha Resto',
-  'Lee Thompson',
-  'Lyle Fitzsimmons',
   'Majda Praiz',
-  'Megan Loertscher',
-  'Monique Ames',
-  'Mrs. Craun',
-  'Nate Abel',
-  'Robert Reed',
-  'Sarah Stovall',
-  'Savanna Gill',
-  'Sharon Morton',
-  'Steven Diaz',
-  'Tammy Shelton',
   'Travis Warner'
 ];
-const SEED_TEACHERS = [..._SEEDED_NAMES, ...SEED_UNSCHEDULED_TEACHERS].sort();
+// Dedupe against seeded names so no teacher ever ends up in the list twice.
+const _SEEDED_NAME_SET = new Set(_SEEDED_NAMES);
+const SEED_TEACHERS = [...new Set([
+  ..._SEEDED_NAMES,
+  ...SEED_UNSCHEDULED_TEACHERS.filter(n => !_SEEDED_NAME_SET.has(n))
+])].sort();
 
 // Format: [date, [[teacher,HR,P1,P2,P3,P4,P5,P6],...], notes]
 const SEED_ROSTER=[
@@ -1376,7 +1365,7 @@ let fbApplyingRemote = false; // prevents echo loop
 
 // Seed version — bump this whenever SEED_TEACHER_SCHEDULES changes to force clients
 // (and the Firebase copy) to re-hydrate teacher periods + Teams links from the current seed.
-const CURRENT_SEED_VERSION = 4;
+const CURRENT_SEED_VERSION = 5;
 
 // Canonical period ordering: HR first, then P1..P6 (chronological).
 const PERIOD_ORDER = {HR:0, P1:1, P2:2, P3:3, P4:4, P5:5, P6:6};
@@ -1395,15 +1384,33 @@ function sortPeriods(periods){
 // Re-apply seed periods + Teams link + grade for every seeded teacher.
 // Non-seeded teachers keep whatever's stored. Coverage assignments are NOT touched
 // (they live on roster entries, keyed by period id).
+// Teachers who no longer work at OptimaEd — cleared out on next seed refresh.
+const RETIRED_TEACHERS = [
+  'Mrs. Craun','Nate Abel','Hannah Hardy','James Foster','Janelle Diaz',
+  'Jesse Thompson','John Rosenbaum','Keysha Resto','Lee Thompson',
+  'Lyle Fitzsimmons','Robert Reed','Sarah Stovall','Savanna Gill','Sharon Morton'
+];
+
 function applySeedRefresh(s){
+  s.settings = s.settings || {};
+  s.settings.deletedTeachers = s.settings.deletedTeachers || [];
+  // Add the retired-teachers list to the deletion blocklist so they don't re-appear
+  RETIRED_TEACHERS.forEach(n=>{
+    if(!s.settings.deletedTeachers.includes(n)) s.settings.deletedTeachers.push(n);
+  });
+  const deleted = new Set(s.settings.deletedTeachers || []);
   const seededMap = {};
   SEED_TEACHER_SCHEDULES.forEach(sc=>{ seededMap[sc.name]=sc; });
+  // Group any existing teachers by name so we can dedupe (later duplicates get dropped)
   const existingByName = {};
-  (s.teachers||[]).forEach(t=>{ existingByName[t.name]=t; });
-  // Rebuild teacher list: seeded teachers get seed data; unseeded teachers preserved.
+  (s.teachers||[]).forEach(t=>{
+    if(!existingByName[t.name]) existingByName[t.name] = t;
+  });
+  // Rebuild teacher list: seeded teachers get seed data (skipped if deleted); unseeded manual teachers preserved.
   const merged = [];
   const seenNames = new Set();
   SEED_TEACHERS.forEach((name,i)=>{
+    if(deleted.has(name)) return; // respect user deletions across refreshes
     const seed = seededMap[name];
     const existing = existingByName[name];
     merged.push({
@@ -1416,12 +1423,14 @@ function applySeedRefresh(s){
     });
     seenNames.add(name);
   });
-  // Any manually-added teachers not in SEED_TEACHERS list — keep them
+  // Any manually-added teachers not in SEED_TEACHERS list — keep them (unless deleted)
   (s.teachers||[]).forEach(t=>{
-    if(!seenNames.has(t.name)) merged.push(t);
+    if(!seenNames.has(t.name) && !deleted.has(t.name)){
+      merged.push(t);
+      seenNames.add(t.name);
+    }
   });
   s.teachers = merged;
-  s.settings = s.settings || {};
   s.settings.seedVersion = CURRENT_SEED_VERSION;
   return s;
 }
@@ -1495,6 +1504,22 @@ function normalizeState(s){
       teamsLink:t.teamsLink||seededMap[t.name]?.teamsLink||''
     };
   });
+  // Dedupe teachers by name — keep the entry with the most periods, drop the rest.
+  // Also drop teachers on the deleted / retired blocklist.
+  {
+    const deleted = new Set([...(s.settings?.deletedTeachers||[])]);
+    const byName = new Map();
+    for(const t of s.teachers){
+      const nm = (t.name||'').trim();
+      if(!nm) continue;
+      if(deleted.has(nm)) continue;
+      const prev = byName.get(nm);
+      if(!prev || (t.periods?.length||0) > (prev.periods?.length||0)){
+        byName.set(nm, t);
+      }
+    }
+    s.teachers = [...byName.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  }
   // Subs
   s.subs=toArr(s.subs).map(sub=>({
     id:sub.id||'s'+Math.random(),name:sub.name||'',
@@ -2084,13 +2109,19 @@ function renderRoster(){
     const d=parseDate(ds);
     const dayName=d.toLocaleDateString('en-US',{weekday:'short'});
     const dayNum=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const status = dayCoverageStatus(ds);
     let cls='day-tab';
     if(ds===currentDate)cls+=' active';
     if(hol)cls+=' is-holiday';
-    else if(n>0)cls+=' has-abs';
+    else if(status==='uncovered')cls+=' has-abs';
+    else if(status==='covered')cls+=' all-covered';
+    const infoText = hol ? hol.label :
+      status==='clear' ? 'Clear' :
+      status==='covered' ? `${n} absent · covered` :
+      `${n} absent`;
     return `<button class="${cls}" onclick="selectDay('${ds}')">
       <span class="day-label">${dayName} ${dayNum}</span>
-      <span class="day-info">${hol?hol.label:n>0?n+' absent':'Clear'}</span>
+      <span class="day-info">${infoText}</span>
     </button>`;
   }).join('');
 
@@ -2245,6 +2276,25 @@ function applySuggest(ds,idx,periodId,subName){
 function saveNotes(ds,val){
   ensureDay(ds).notes=val;saveState();
 }
+// Coverage status for a given date: 'clear' (no absences), 'covered' (every scheduled period on every absence has a sub or is marked NCN), 'uncovered' (at least one period still needs a sub)
+function dayCoverageStatus(ds){
+  const entry=state.roster[ds];
+  const n=entry?.absences?.length||0;
+  if(n===0) return 'clear';
+  for(const abs of entry.absences){
+    // Only check periods that actually run on this day for this teacher
+    const periods = getTeacherPeriodsForDay(abs.teacher, ds);
+    const seen = new Set();
+    for(const p of periods){
+      if(seen.has(p.id)) continue;
+      seen.add(p.id);
+      const v = abs.coverage?.[p.id];
+      if(!v) return 'uncovered'; // null/undefined/empty = still needs coverage
+      // '__NCN__' = intentionally no sub needed; counts as covered
+    }
+  }
+  return 'covered';
+}
 function renderDayTabs(){
   const days=getWeekDays(currentDate);
   document.querySelectorAll('.day-tab').forEach((btn,i)=>{
@@ -2254,8 +2304,16 @@ function renderDayTabs(){
     const n=entry?.absences?.length||0;
     const hol=getHoliday(ds);
     const info=btn.querySelector('.day-info');
-    if(info)info.textContent=hol?hol.label:n>0?n+' absent':'Clear';
-    btn.className='day-tab'+(ds===currentDate?' active':'')+(hol?' is-holiday':n>0?' has-abs':'');
+    const status = dayCoverageStatus(ds);
+    if(info)info.textContent = hol ? hol.label :
+      status==='clear' ? 'Clear' :
+      status==='covered' ? `${n} absent · covered` :
+      `${n} absent`;
+    let cls='day-tab'+(ds===currentDate?' active':'');
+    if(hol) cls+=' is-holiday';
+    else if(status==='uncovered') cls+=' has-abs';
+    else if(status==='covered') cls+=' all-covered';
+    btn.className = cls;
   });
 }
 function copyRoster(ds){
@@ -2530,7 +2588,16 @@ function saveTeacher(){
 
 function deleteTeacher(id){
   if(!confirm('Remove this teacher?'))return;
-  state.teachers=state.teachers.filter(t=>t.id!==id);
+  const t = state.teachers.find(x=>x.id===id);
+  state.teachers = state.teachers.filter(x=>x.id!==id);
+  // Remember the deletion so seed refreshes don't add this teacher back
+  if(t?.name){
+    state.settings = state.settings || {};
+    state.settings.deletedTeachers = state.settings.deletedTeachers || [];
+    if(!state.settings.deletedTeachers.includes(t.name)){
+      state.settings.deletedTeachers.push(t.name);
+    }
+  }
   saveState();renderTeachers();toast('Teacher removed','ok');
 }
 
@@ -2542,7 +2609,9 @@ function renderSubs(){
   const monthStart=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
   const wls=state.subs.map(s=>({...s,tier:s.tier||5,total:getSubPeriods(s.name),month:getSubPeriods(s.name,monthStart)}))
     .sort((a,b)=>(a.tier-b.tier)||b.total-a.total);
-  const maxN=Math.max(...wls.map(s=>s.total),1);
+  // Per-tier maxima so bars compare only within their tier
+  const maxByTier={};
+  wls.forEach(s=>{ maxByTier[s.tier] = Math.max(maxByTier[s.tier]||1, s.total); });
   let rows='',lastTier=null;
   wls.forEach((s,i)=>{
     if(s.tier!==lastTier){
@@ -2552,7 +2621,7 @@ function renderSubs(){
       </td></tr>`;
       lastTier=s.tier;
     }
-    const pct=Math.round(s.total/maxN*100);
+    const pct=Math.round(s.total/(maxByTier[s.tier]||1)*100);
     const cls=pct>80?'heavy':pct<30?'light':'';
     const alwaysAvail = s.alwaysAvailable!==false;
     const hasAvail=!alwaysAvail && s.schedule&&Object.values(s.schedule).some(p=>p?.length>0);
